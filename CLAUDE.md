@@ -13,7 +13,7 @@ I'm new to coding and learning as we go. Keep code simple and well commented. Af
 - Correct: happy customer, player earns coins. Wrong: friendly message, try again.
 
 ## Current scope
-- Five dishes: pancakes, pasta with tomato sauce, salad, pie and tea. Each has its own ingredients and steps (Mix, Chop, Cook, Boil, Bake).
+- Five dishes: pancakes, pasta with tomato sauce, salad, pie and tea. Pie comes in five flavours (apple, orange, banana, pear, grape) using fruit from the basket in the pantry. Each has its own ingredients and steps (Mix, Chop, Cook, Boil, Bake).
 - Two views: the kitchen in front of you, the pantry behind you (turn around with a button or a swipe).
 - A wrong ingredient turns the bowl into sludge.
 - Designed for a phone screen held upright; big buttons easy to tap.

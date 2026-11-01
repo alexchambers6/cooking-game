@@ -1282,7 +1282,7 @@
       position: absolute;
       left: 4px;
       bottom: 8px;
-      width: 110px;
+      width: 150px;
       height: 44px;
       border: 2.5px solid var(--ink);
       border-radius: 6px 6px 14px 14px;
@@ -1293,15 +1293,37 @@
         #d8a868;
     }
 
+    /* The row of fruit sitting in the basket */
     .basket-fruit {
       position: absolute;
       left: 0;
       right: 0;
-      top: -22px;
-      text-align: center;
-      font-size: 24px;
-      letter-spacing: -4px;
-      white-space: nowrap;
+      top: -30px;
+      display: flex;
+      justify-content: center;
+    }
+
+    /* One piece of fruit (a button you can tap) */
+    .fruit {
+      background: none;
+      border: none;
+      padding: 0;
+      width: 29px;
+      font-size: 26px;
+      line-height: 1;
+      font-family: inherit;
+      touch-action: manipulation;
+      transition: transform 0.25s ease, opacity 0.3s;
+      filter: drop-shadow(1px 2px 0 rgba(0, 0, 0, 0.15));
+    }
+
+    /* Picked up out of the basket */
+    .fruit.lifted {
+      transform: translateY(-14px) scale(1.2) rotate(-12deg);
+    }
+
+    .fruit:disabled {
+      opacity: 0.35;
     }
 
     /* The wooden board the bowl sits on in the pantry */
@@ -1309,7 +1331,7 @@
       position: absolute;
       right: 4px;
       bottom: 0;
-      width: 168px;
+      width: 158px;
       height: 14px;
       border: 2.5px solid var(--ink);
       border-radius: 6px;
@@ -1505,7 +1527,7 @@
 
           <!-- Fruit basket and your bowl -->
           <div class="pantry-floor">
-            <div class="basket"><div class="basket-fruit">🍊🍌🍐🍇</div></div>
+            <div class="basket"><div class="basket-fruit" id="basket-fruit"></div></div>
             <div class="board"></div>
             <div class="station" id="pantry-station" style="right: 18px; bottom: 12px;">
               <div class="bowl"></div>
@@ -1557,12 +1579,8 @@
         steps: ["Chop", "Mix"],
         colour: "#8fce7c"
       },
-      {
-        name: "a pie", title: "Pie", emoji: "🥧",
-        ingredients: ["Flour", "Butter", "Apple"],
-        steps: ["Mix", "Bake"],
-        colour: "#f3dcb0"
-      },
+      // Pie is special: it comes in different fruit flavours (see makePie below)
+      { isPie: true },
       {
         name: "a cup of tea", title: "Tea", emoji: "🍵",
         ingredients: ["Tea", "Honey"],
@@ -1583,7 +1601,7 @@
       { name: "Lettuce",  emoji: "🥬", fill: "#a8d98a" },
       { name: "Cucumber", emoji: "🥒", fill: "#7cbf6a" },
       { name: "Butter",   emoji: "🧈", fill: "#fbe58c" },
-      { name: "Apple",    emoji: "🍎", fill: "#ef7d6d" },
+      { name: "Rice",     emoji: "🍚", fill: "#f7f7f2" },
       { name: "Tea",      emoji: "🍃", fill: "#8c9a5b" },
       { name: "Honey",    emoji: "🍯", fill: "#f2b33d" },
       { name: "Fish",     emoji: "🐟", fill: "#a7d3f0" },
@@ -1595,6 +1613,38 @@
       { name: "Potato",   emoji: "🥔", fill: "#d8b07a" },
       { name: "Lemon",    emoji: "🍋", fill: "#fff176" }
     ];
+
+    // Fruit in the basket at the bottom of the pantry. These are ingredients too!
+    // "fill" is the colour the pie filling turns when mixed.
+    const basketFruits = [
+      { name: "Apple",  emoji: "🍎", fill: "#f3d9a0" },
+      { name: "Orange", emoji: "🍊", fill: "#f9b45c" },
+      { name: "Banana", emoji: "🍌", fill: "#f7e38a" },
+      { name: "Pear",   emoji: "🍐", fill: "#d8e08a" },
+      { name: "Grape",  emoji: "🍇", fill: "#a77bc9" }
+    ];
+
+    // Every ingredient, from the jars and the basket together
+    const allIngredients = pantryItems.concat(basketFruits);
+
+    // Find an ingredient by its name, e.g. findIngredient("Flour")
+    function findIngredient(name) {
+      return allIngredients.find(function (item) { return item.name === name; });
+    }
+
+    // Make a pie recipe for one fruit, e.g. makePie(basketFruits[2]) = banana pie
+    function makePie(fruit) {
+      // "an" before a vowel sound: an apple pie, an orange pie, a pear pie
+      const startsWithVowel = "AEIOU".includes(fruit.name[0]);
+      return {
+        name: (startsWithVowel ? "an " : "a ") + fruit.name.toLowerCase() + " pie",
+        title: fruit.name + " Pie",
+        emoji: "🥧",
+        ingredients: ["Flour", "Butter", fruit.name],
+        steps: ["Mix", "Bake"],
+        colour: fruit.fill
+      };
+    }
 
     // Lid colours for the jars (picked at random for each jar)
     const lidColours = ["#2a9d8f", "#dca56e", "#e9c46a", "#e9735b", "#92b4d4"];
@@ -1636,6 +1686,7 @@
     let addedIngredients = [];   // ingredients put in the bowl so far
     let stepsDone = 0;           // how many cooking steps finished so far
     let currentDish = null;      // the dish being made (picked when a customer arrives)
+    let lastMenuItem = null;     // what was picked from the dishes list last time
     let currentFace = "🧒";      // the face of the customer being served
     let facing = "kitchen";      // which way you're looking: "kitchen" or "pantry"
 
@@ -1683,6 +1734,7 @@
     const ovenDoor = document.getElementById("oven-door");
     const ovenGlass = document.getElementById("oven-glass");
     const shelves = document.getElementById("shelves");
+    const basket = document.getElementById("basket-fruit");
     const turnButton = document.getElementById("turn-button");
     const washButton = document.getElementById("wash-button");
     const nextButton = document.getElementById("next-button");
@@ -1911,8 +1963,7 @@
       for (let i = 0; i < currentDish.ingredients.length; i++) {
         const name = addedIngredients[i];
         if (name) {
-          const item = pantryItems.find(function (p) { return p.name === name; });
-          html += '<span class="slot filled">' + item.emoji + "</span>";
+          html += '<span class="slot filled">' + findIngredient(name).emoji + "</span>";
         } else {
           html += '<span class="slot"></span>';
         }
@@ -1953,7 +2004,7 @@
 
       // Helpful message for where you've turned to
       if (facing === "pantry" && stage === "pick") {
-        showMessage("Tap the jars to put ingredients in your bowl", "");
+        showMessage("Tap the jars and fruit to put ingredients in your bowl", "");
       } else if (facing === "kitchen" && stage === "steps") {
         showMessage("Now cook! Use the right things in the right order 👩‍🍳", "");
       } else if (facing === "kitchen" && stage === "pick") {
@@ -2024,11 +2075,24 @@
         shelf.appendChild(plank);
         shelves.appendChild(shelf);
       }
+
+      // Put the fruit in the basket, as tappable buttons
+      basket.innerHTML = "";
+      shuffle(basketFruits).forEach(function (fruit) {
+        const button = document.createElement("button");
+        button.className = "fruit";
+        button.innerHTML = '<span class="emoji">' + fruit.emoji + "</span>";
+        button.addEventListener("click", function () {
+          tapIngredient(fruit, button);
+        });
+        basket.appendChild(button);
+      });
     }
 
+    // Turn all the jars and fruit on or off at once
     function setJarsEnabled(enabled) {
-      shelves.querySelectorAll("button").forEach(function (jar) {
-        jar.disabled = !enabled;
+      document.querySelectorAll("#shelves button, .fruit").forEach(function (button) {
+        button.disabled = !enabled;
       });
     }
 
@@ -2067,7 +2131,7 @@
           // Right ingredient: it lands in the bowl
           addedIngredients.push(item.name);
           setBowlItems(addedIngredients.map(function (name) {
-            return "<span>" + pantryItems.find(function (p) { return p.name === name; }).emoji + "</span>";
+            return "<span>" + findIngredient(name).emoji + "</span>";
           }).join(""));
           setBowlContents("#fffaf0");
           jar.disabled = true;
@@ -2451,11 +2515,18 @@
       currentFace = randomFrom(customerFaces);
 
       // Pick a dish (a different one from last time, to keep it fresh)
-      let nextDish = randomFrom(dishes);
-      while (nextDish === currentDish) {
-        nextDish = randomFrom(dishes);
+      let menuItem = randomFrom(dishes);
+      while (menuItem === lastMenuItem) {
+        menuItem = randomFrom(dishes);
       }
-      currentDish = nextDish;
+      lastMenuItem = menuItem;
+
+      // If it's pie, pick a fruit flavour too
+      if (menuItem.isPie) {
+        currentDish = makePie(randomFrom(basketFruits));
+      } else {
+        currentDish = menuItem;
+      }
 
       buildPantry();
       buildTools();
