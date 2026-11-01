@@ -181,6 +181,112 @@
       width: 100%;
     }
 
+    /* ===== The pantry: wooden shelves full of glass jars ===== */
+    .pantry {
+      background: #fdf8f0;                 /* pale tiled wall behind the shelves */
+      background-image:
+        linear-gradient(#efe6d8 1px, transparent 1px),
+        linear-gradient(90deg, #efe6d8 1px, transparent 1px);
+      background-size: 28px 28px;
+      border: 10px solid #c8894d;          /* wooden frame */
+      border-radius: 12px;
+      padding: 6px 6px 0;
+      margin-top: 8px;
+    }
+
+    /* One shelf = a row of 4 jars sitting on a wooden plank */
+    .shelf {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      align-items: end;                    /* jars sit on the plank */
+      padding: 12px 4px 0;
+      border-bottom: 12px solid #d9a066;   /* the plank */
+      box-shadow: 0 4px 0 #a86f3c;         /* plank's darker front edge */
+      margin-bottom: 12px;
+    }
+
+    /* A single glass jar (it's really a button) */
+    .jar {
+      position: relative;
+      height: 92px;
+      border: 2px solid rgba(110, 160, 170, 0.6);
+      border-radius: 10px 10px 14px 14px;
+      /* Bottom part = the food inside (colour set per ingredient), top part = glass */
+      background: linear-gradient(to top, var(--fill) 0 62%, rgba(225, 242, 246, 0.7) 62%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      padding: 12px 2px 4px;
+      font-family: inherit;
+      color: var(--text);
+      touch-action: manipulation;
+    }
+
+    /* Every other jar is a bit shorter, so the shelves look less tidy-robotic */
+    .jar:nth-child(even) {
+      height: 82px;
+    }
+
+    /* The lid on top of the jar (colour set per jar) */
+    .jar::before {
+      content: "";
+      position: absolute;
+      top: -6px;
+      left: 12%;
+      width: 76%;
+      height: 10px;
+      background: var(--lid);
+      border-radius: 4px;
+    }
+
+    .jar .emoji {
+      font-size: 28px;
+      line-height: 1;
+    }
+
+    /* The little white label stuck on the jar */
+    .jar .label {
+      background: white;
+      border-radius: 6px;
+      padding: 1px 5px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .jar:active {
+      transform: scale(0.94);
+    }
+
+    /* Faded out once used (or while the bowl is full of sludge) */
+    .jar:disabled {
+      opacity: 0.35;
+    }
+
+    /* ===== Sludge! What happens when a wrong ingredient goes in ===== */
+    .bowl.sludge {
+      background: #7d8a4e;                 /* murky green-brown */
+      color: white;
+      animation: wobble 0.6s ease 2;
+    }
+
+    @keyframes wobble {
+      0%, 100% { transform: rotate(0); }
+      25% { transform: rotate(-3deg); }
+      75% { transform: rotate(3deg); }
+    }
+
+    /* The "Wash the bowl" button that appears after sludge */
+    .wash-button {
+      background: var(--blue);
+      color: white;
+      font-size: 22px;
+      min-height: 70px;
+      width: 100%;
+    }
+
     /* A class that simply hides things */
     .hidden {
       display: none !important;
@@ -214,7 +320,7 @@
     </div>
 
     <!-- Shows the ingredients and steps done so far -->
-    <div class="bowl">
+    <div class="bowl" id="bowl-box">
       <span class="bowl-label">Your bowl</span>
       <span id="bowl"></span>
     </div>
@@ -222,10 +328,13 @@
     <!-- Friendly feedback appears here -->
     <div class="message" id="message"></div>
 
-    <!-- Stage 1: pick ingredients -->
+    <!-- Appears only when the bowl is full of sludge -->
+    <button class="big-button wash-button hidden" id="wash-button">🧽 Wash the bowl</button>
+
+    <!-- Stage 1: pick ingredients from the pantry shelves -->
     <div id="pantry-section">
       <h2>Pantry: tap the ingredients you need</h2>
-      <div class="button-grid" id="pantry"></div>
+      <div class="pantry" id="pantry"></div>
     </div>
 
     <!-- Stage 2: tap cooking steps in order (hidden at first) -->
@@ -254,15 +363,32 @@
       steps: ["Mix", "Cook"]                    // what to do (this order!)
     };
 
-    // Everything in the pantry. Some are right, some are distractors.
+    // Everything in the pantry. Some are right, most are distractors.
+    // "fill" is the colour of the food you can see inside the jar.
     const pantryItems = [
-      { name: "Flour",  emoji: "🌾" },
-      { name: "Eggs",   emoji: "🥚" },
-      { name: "Milk",   emoji: "🥛" },
-      { name: "Tomato", emoji: "🍅" },
-      { name: "Fish",   emoji: "🐟" },
-      { name: "Onion",  emoji: "🧅" }
+      { name: "Flour",    emoji: "🌾", fill: "#f3ead8" },
+      { name: "Eggs",     emoji: "🥚", fill: "#f6e2c3" },
+      { name: "Milk",     emoji: "🥛", fill: "#ffffff" },
+      { name: "Tomato",   emoji: "🍅", fill: "#f28b82" },
+      { name: "Fish",     emoji: "🐟", fill: "#a7d3f0" },
+      { name: "Onion",    emoji: "🧅", fill: "#e9c9a3" },
+      { name: "Cheese",   emoji: "🧀", fill: "#ffd966" },
+      { name: "Carrot",   emoji: "🥕", fill: "#ffb26b" },
+      { name: "Rice",     emoji: "🍚", fill: "#f7f7f2" },
+      { name: "Garlic",   emoji: "🧄", fill: "#efe6d8" },
+      { name: "Chilli",   emoji: "🌶️", fill: "#e85d4a" },
+      { name: "Mushroom", emoji: "🍄", fill: "#d9b99b" },
+      { name: "Potato",   emoji: "🥔", fill: "#d8b07a" },
+      { name: "Broccoli", emoji: "🥦", fill: "#8fce7c" },
+      { name: "Lemon",    emoji: "🍋", fill: "#fff176" },
+      { name: "Peas",     emoji: "🫛", fill: "#9ccc65" }
     ];
+
+    // Lid colours for the jars (picked at random for each jar)
+    const lidColours = ["#2a9d8f", "#c8894d", "#e9c46a", "#e76f51"];
+
+    // How many jars fit on one shelf
+    const jarsPerShelf = 4;
 
     // All the cooking steps the player can choose from
     const cookingSteps = [
@@ -286,6 +412,7 @@
     let addedIngredients = [];  // ingredients put in the bowl so far
     let stepsDone = 0;          // how many steps done correctly so far
     let currentDish = pancakes;
+    let currentFace = "🧒";     // the face of the customer being served
 
     // ============================================================
     // GRAB THE PARTS OF THE PAGE WE NEED TO CHANGE
@@ -295,6 +422,8 @@
     const customerFace = document.getElementById("customer");
     const bubble = document.getElementById("bubble");
     const bowl = document.getElementById("bowl");
+    const bowlBox = document.getElementById("bowl-box");
+    const washButton = document.getElementById("wash-button");
     const message = document.getElementById("message");
     const pantrySection = document.getElementById("pantry-section");
     const pantryGrid = document.getElementById("pantry");
@@ -333,6 +462,42 @@
       return button;
     }
 
+    // Make one glass jar for the pantry shelf
+    function makeJar(item) {
+      const jar = document.createElement("button");
+      jar.className = "jar";
+      // Tell the CSS which colours to use for this jar's food and lid
+      jar.style.setProperty("--fill", item.fill);
+      jar.style.setProperty("--lid", lidColours[Math.floor(Math.random() * lidColours.length)]);
+      jar.innerHTML = '<span class="emoji">' + item.emoji + '</span><span class="label">' + item.name + "</span>";
+      jar.addEventListener("click", function () {
+        tapIngredient(item, jar);
+      });
+      return jar;
+    }
+
+    // Fill the pantry with shelves of jars, in a random order
+    function buildPantry() {
+      pantryGrid.innerHTML = "";
+      const jars = shuffle(pantryItems);
+      // Take the jars 4 at a time and put each group on its own shelf
+      for (let i = 0; i < jars.length; i += jarsPerShelf) {
+        const shelf = document.createElement("div");
+        shelf.className = "shelf";
+        jars.slice(i, i + jarsPerShelf).forEach(function (item) {
+          shelf.appendChild(makeJar(item));
+        });
+        pantryGrid.appendChild(shelf);
+      }
+    }
+
+    // Turn all the jars on or off at once
+    function setJarsEnabled(enabled) {
+      pantryGrid.querySelectorAll("button").forEach(function (jar) {
+        jar.disabled = !enabled;
+      });
+    }
+
     // ============================================================
     // STAGE 1: PICKING INGREDIENTS
     // ============================================================
@@ -353,9 +518,38 @@
           stepsSection.classList.remove("hidden");
         }
       } else {
-        // No, it's a distractor. Be kind about it.
-        showMessage("Hmm, " + currentDish.name + " don't need " + item.name.toLowerCase() + ". Try again! 😊", "oops");
+        // No, it's a distractor. It goes in the bowl... and ruins everything!
+        makeSludge(item);
       }
+    }
+
+    // A wrong ingredient turns the whole bowl into sludge
+    function makeSludge(item) {
+      bowl.textContent = "🤢 Sludge! 🫧";
+      bowlBox.classList.add("sludge");
+      customerFace.textContent = "😖";
+      bubble.textContent = "Eww! That's not " + currentDish.name + "!";
+      showMessage("Oh no, the " + item.name.toLowerCase() + " turned it into sludge! Wash the bowl and try again 😊", "oops");
+
+      // No more ingredients until the bowl is clean
+      setJarsEnabled(false);
+      washButton.classList.remove("hidden");
+
+      // Scroll back up so the player can see the sludge and the customer
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    // Empty the bowl and start picking ingredients again (same customer)
+    function washBowl() {
+      addedIngredients = [];
+      bowl.textContent = "";
+      bowlBox.classList.remove("sludge");
+      customerFace.textContent = currentFace;
+      customerFace.classList.remove("bounce");
+      bubble.textContent = "I'd like " + currentDish.name + ", please! " + currentDish.emoji;
+      showMessage("", "");
+      setJarsEnabled(true);
+      washButton.classList.add("hidden");
     }
 
     // ============================================================
@@ -421,25 +615,16 @@
     // ============================================================
 
     function newCustomer() {
-      // Reset the state
-      addedIngredients = [];
       stepsDone = 0;
 
-      // Pick a random face
-      const face = customerFaces[Math.floor(Math.random() * customerFaces.length)];
-      customerFace.textContent = face;
-      customerFace.classList.remove("bounce");
-      bubble.textContent = "I'd like " + currentDish.name + ", please! " + currentDish.emoji;
+      // Pick a random face for the new customer
+      currentFace = customerFaces[Math.floor(Math.random() * customerFaces.length)];
 
-      // Clear the bowl and message
-      bowl.textContent = "";
-      showMessage("", "");
+      // Fill the shelves with jars
+      buildPantry();
 
-      // Build the pantry buttons in a random order
-      pantryGrid.innerHTML = "";
-      shuffle(pantryItems).forEach(function (item) {
-        pantryGrid.appendChild(makeButton(item, "", tapIngredient));
-      });
+      // Clean bowl, customer places their order
+      washBowl();
 
       // Build the cooking step buttons in a random order
       stepsGrid.innerHTML = "";
@@ -455,6 +640,9 @@
 
     // When "Next customer" is tapped, start a new round
     nextButton.addEventListener("click", newCustomer);
+
+    // When "Wash the bowl" is tapped, empty the sludge and try again
+    washButton.addEventListener("click", washBowl);
 
     // Start the very first round when the page loads
     newCustomer();
