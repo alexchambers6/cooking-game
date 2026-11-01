@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <!-- Make the page fit the phone screen and stop accidental zooming -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <!-- Lets the game run full-screen if added to the iPhone home screen -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Cooking Game">
+  <title>Cooking Game</title>
+
+  <style>
+    /* ===== Colours we reuse everywhere ===== */
+    :root {
+      --background: #fff4d6;   /* warm cream */
+      --card: #ffffff;
+      --text: #4a2c2a;         /* chocolate brown */
+      --pink: #ff7aa2;
+      --orange: #ffa94d;
+      --green: #51cf66;
+      --blue: #4dabf7;
+      --red: #ff6b6b;
+    }
+
+    /* Make sizes behave predictably */
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
+      background: var(--background);
+      color: var(--text);
+      /* Keep content clear of the iPhone notch and home bar */
+      padding: calc(env(safe-area-inset-top) + 12px) 16px calc(env(safe-area-inset-bottom) + 16px);
+      min-height: 100vh;
+      /* Stop iPhone highlighting things grey when tapped */
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    /* Keep everything in a neat column, even on a big screen */
+    .game {
+      max-width: 480px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    /* ===== Top bar: title and coins ===== */
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 26px;
+    }
+
+    .coins {
+      background: var(--card);
+      border-radius: 999px;
+      padding: 8px 16px;
+      font-size: 22px;
+      font-weight: bold;
+      box-shadow: 0 3px 0 rgba(0, 0, 0, 0.1);
+    }
+
+    /* ===== Customer and their speech bubble ===== */
+    .customer-area {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .customer {
+      font-size: 72px;
+      line-height: 1;
+    }
+
+    .bubble {
+      background: var(--card);
+      border-radius: 20px;
+      padding: 14px 16px;
+      font-size: 20px;
+      font-weight: 600;
+      flex: 1;
+      box-shadow: 0 3px 0 rgba(0, 0, 0, 0.1);
+    }
+
+    /* ===== The bowl / pan showing what we've added so far ===== */
+    .bowl {
+      background: var(--card);
+      border-radius: 20px;
+      padding: 12px;
+      min-height: 70px;
+      font-size: 40px;
+      text-align: center;
+      box-shadow: 0 3px 0 rgba(0, 0, 0, 0.1);
+    }
+
+    .bowl-label {
+      display: block;
+      font-size: 14px;
+      font-weight: 600;
+      opacity: 0.6;
+    }
+
+    /* ===== The friendly message line ===== */
+    .message {
+      min-height: 28px;
+      text-align: center;
+      font-size: 19px;
+      font-weight: 600;
+    }
+
+    .message.good { color: #2b8a3e; }
+    .message.oops { color: #e03131; }
+
+    /* ===== Section headings like "Pantry" ===== */
+    h2 {
+      margin: 0;
+      font-size: 20px;
+    }
+
+    /* ===== Grid of big tappable buttons ===== */
+    .button-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);  /* 3 buttons per row */
+      gap: 10px;
+    }
+
+    .big-button {
+      border: none;
+      border-radius: 18px;
+      padding: 12px 4px;
+      min-height: 90px;          /* nice and big for fingers */
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text);
+      background: var(--card);
+      box-shadow: 0 4px 0 rgba(0, 0, 0, 0.15);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      touch-action: manipulation; /* stops double-tap zoom delay */
+      font-family: inherit;
+    }
+
+    .big-button .emoji {
+      font-size: 38px;
+    }
+
+    /* Little "pressed down" effect when tapped */
+    .big-button:active {
+      transform: translateY(3px);
+      box-shadow: 0 1px 0 rgba(0, 0, 0, 0.15);
+    }
+
+    /* Greyed out once used */
+    .big-button:disabled {
+      opacity: 0.35;
+    }
+
+    /* Cooking step buttons get a colour each */
+    .step-button { background: #ffe3ec; }
+
+    /* The wide "Next customer" button */
+    .next-button {
+      background: var(--green);
+      color: white;
+      font-size: 22px;
+      min-height: 70px;
+      width: 100%;
+    }
+
+    /* A class that simply hides things */
+    .hidden {
+      display: none !important;
+    }
+
+    /* A little bounce for the happy customer */
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-14px); }
+    }
+
+    .bounce {
+      animation: bounce 0.5s ease 2;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="game">
+
+    <!-- Title and coin counter -->
+    <div class="top-bar">
+      <h1>🍳 Cooking Game</h1>
+      <div class="coins">🪙 <span id="coins">0</span></div>
+    </div>
+
+    <!-- The customer and what they say -->
+    <div class="customer-area">
+      <div class="customer" id="customer">🧒</div>
+      <div class="bubble" id="bubble">I'd like pancakes, please! 🥞</div>
+    </div>
+
+    <!-- Shows the ingredients and steps done so far -->
+    <div class="bowl">
+      <span class="bowl-label">Your bowl</span>
+      <span id="bowl"></span>
+    </div>
+
+    <!-- Friendly feedback appears here -->
+    <div class="message" id="message"></div>
+
+    <!-- Stage 1: pick ingredients -->
+    <div id="pantry-section">
+      <h2>Pantry: tap the ingredients you need</h2>
+      <div class="button-grid" id="pantry"></div>
+    </div>
+
+    <!-- Stage 2: tap cooking steps in order (hidden at first) -->
+    <div id="steps-section" class="hidden">
+      <h2>Now cook it! Tap the steps in order</h2>
+      <div class="button-grid" id="steps"></div>
+    </div>
+
+    <!-- Stage 3: shown when the dish is served -->
+    <button class="big-button next-button hidden" id="next-button">Next customer ➡️</button>
+
+  </div>
+
+  <script>
+    // ============================================================
+    // GAME DATA
+    // Everything the game needs to know lives here, so it's easy
+    // to change later (e.g. to add more dishes).
+    // ============================================================
+
+    // The one dish in Version 1
+    const pancakes = {
+      name: "pancakes",
+      emoji: "🥞",
+      ingredients: ["Flour", "Eggs", "Milk"],   // what's needed (any order)
+      steps: ["Mix", "Cook"]                    // what to do (this order!)
+    };
+
+    // Everything in the pantry. Some are right, some are distractors.
+    const pantryItems = [
+      { name: "Flour",  emoji: "🌾" },
+      { name: "Eggs",   emoji: "🥚" },
+      { name: "Milk",   emoji: "🥛" },
+      { name: "Tomato", emoji: "🍅" },
+      { name: "Fish",   emoji: "🐟" },
+      { name: "Onion",  emoji: "🧅" }
+    ];
+
+    // All the cooking steps the player can choose from
+    const cookingSteps = [
+      { name: "Mix",  emoji: "🥄" },
+      { name: "Cook", emoji: "🍳" },
+      { name: "Chop", emoji: "🔪" }
+    ];
+
+    // Different faces so each customer feels new
+    const customerFaces = ["🧒", "👧", "👦", "👩", "👨", "👵", "👴", "🧑‍🦰"];
+
+    // How many coins a finished dish earns
+    const coinsPerDish = 10;
+
+    // ============================================================
+    // GAME STATE
+    // These change as the player plays.
+    // ============================================================
+
+    let coins = 0;
+    let addedIngredients = [];  // ingredients put in the bowl so far
+    let stepsDone = 0;          // how many steps done correctly so far
+    let currentDish = pancakes;
+
+    // ============================================================
+    // GRAB THE PARTS OF THE PAGE WE NEED TO CHANGE
+    // ============================================================
+
+    const coinsText = document.getElementById("coins");
+    const customerFace = document.getElementById("customer");
+    const bubble = document.getElementById("bubble");
+    const bowl = document.getElementById("bowl");
+    const message = document.getElementById("message");
+    const pantrySection = document.getElementById("pantry-section");
+    const pantryGrid = document.getElementById("pantry");
+    const stepsSection = document.getElementById("steps-section");
+    const stepsGrid = document.getElementById("steps");
+    const nextButton = document.getElementById("next-button");
+
+    // ============================================================
+    // HELPER FUNCTIONS
+    // ============================================================
+
+    // Shuffle a list into a random order (so buttons move around each round)
+    function shuffle(list) {
+      const copy = list.slice();
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+
+    // Show a message. type is "good" (green) or "oops" (red).
+    function showMessage(text, type) {
+      message.textContent = text;
+      message.className = "message " + type;
+    }
+
+    // Make one big button with an emoji and a label
+    function makeButton(item, extraClass, onTap) {
+      const button = document.createElement("button");
+      button.className = "big-button " + extraClass;
+      button.innerHTML = '<span class="emoji">' + item.emoji + "</span>" + item.name;
+      button.addEventListener("click", function () {
+        onTap(item, button);
+      });
+      return button;
+    }
+
+    // ============================================================
+    // STAGE 1: PICKING INGREDIENTS
+    // ============================================================
+
+    function tapIngredient(item, button) {
+      // Is this ingredient part of the recipe?
+      if (currentDish.ingredients.includes(item.name)) {
+        // Yes! Put it in the bowl and grey out the button.
+        addedIngredients.push(item.name);
+        bowl.textContent += item.emoji;
+        button.disabled = true;
+        showMessage("Yum, " + item.name.toLowerCase() + "! 👍", "good");
+
+        // Got everything? Move on to cooking.
+        if (addedIngredients.length === currentDish.ingredients.length) {
+          showMessage("All ingredients in! Time to cook 👩‍🍳", "good");
+          pantrySection.classList.add("hidden");
+          stepsSection.classList.remove("hidden");
+        }
+      } else {
+        // No, it's a distractor. Be kind about it.
+        showMessage("Hmm, " + currentDish.name + " don't need " + item.name.toLowerCase() + ". Try again! 😊", "oops");
+      }
+    }
+
+    // ============================================================
+    // STAGE 2: COOKING STEPS IN ORDER
+    // ============================================================
+
+    function tapStep(item, button) {
+      // Which step should come next?
+      const nextStep = currentDish.steps[stepsDone];
+
+      if (item.name === nextStep) {
+        // Right step at the right time
+        stepsDone++;
+        bowl.textContent += " " + item.emoji;
+        button.disabled = true;
+        showMessage(item.name + "! Great 👍", "good");
+
+        // All steps done? Serve the dish!
+        if (stepsDone === currentDish.steps.length) {
+          serveDish();
+        }
+      } else {
+        // Wrong step: undo the steps so far and let them try again
+        showMessage("Oops! That's not the next step. Let's try again 😊", "oops");
+        resetSteps();
+      }
+    }
+
+    // Put the step buttons back to how they started
+    function resetSteps() {
+      stepsDone = 0;
+      // Bowl goes back to just the ingredients' emoji
+      bowl.textContent = pantryItems
+        .filter(function (p) { return addedIngredients.includes(p.name); })
+        .map(function (p) { return p.emoji; })
+        .join("");
+      // Re-enable all step buttons
+      stepsGrid.querySelectorAll("button").forEach(function (b) {
+        b.disabled = false;
+      });
+    }
+
+    // ============================================================
+    // STAGE 3: SERVE THE DISH AND GET PAID
+    // ============================================================
+
+    function serveDish() {
+      coins += coinsPerDish;
+      coinsText.textContent = coins;
+
+      bowl.textContent = currentDish.emoji;   // show the finished dish
+      customerFace.textContent = "😄";        // happy customer!
+      customerFace.classList.add("bounce");
+      bubble.textContent = "Delicious! Thank you! 💖";
+      showMessage("+" + coinsPerDish + " coins! 🪙", "good");
+
+      stepsSection.classList.add("hidden");
+      nextButton.classList.remove("hidden");
+    }
+
+    // ============================================================
+    // START A NEW ROUND (a new customer arrives)
+    // ============================================================
+
+    function newCustomer() {
+      // Reset the state
+      addedIngredients = [];
+      stepsDone = 0;
+
+      // Pick a random face
+      const face = customerFaces[Math.floor(Math.random() * customerFaces.length)];
+      customerFace.textContent = face;
+      customerFace.classList.remove("bounce");
+      bubble.textContent = "I'd like " + currentDish.name + ", please! " + currentDish.emoji;
+
+      // Clear the bowl and message
+      bowl.textContent = "";
+      showMessage("", "");
+
+      // Build the pantry buttons in a random order
+      pantryGrid.innerHTML = "";
+      shuffle(pantryItems).forEach(function (item) {
+        pantryGrid.appendChild(makeButton(item, "", tapIngredient));
+      });
+
+      // Build the cooking step buttons in a random order
+      stepsGrid.innerHTML = "";
+      shuffle(cookingSteps).forEach(function (item) {
+        stepsGrid.appendChild(makeButton(item, "step-button", tapStep));
+      });
+
+      // Show the pantry, hide everything else
+      pantrySection.classList.remove("hidden");
+      stepsSection.classList.add("hidden");
+      nextButton.classList.add("hidden");
+    }
+
+    // When "Next customer" is tapped, start a new round
+    nextButton.addEventListener("click", newCustomer);
+
+    // Start the very first round when the page loads
+    newCustomer();
+  </script>
+</body>
+</html>
