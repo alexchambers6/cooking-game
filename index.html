@@ -10,80 +10,83 @@
   <title>Cooking Game</title>
 
   <style>
-    /* ===== Colours we reuse everywhere ===== */
+    /* ============================================================
+       COLOURS
+       A soft, cosy palette: cream walls, powder-blue cupboards,
+       peach accents and warm wood.
+       ============================================================ */
     :root {
-      --background: #fff4d6;   /* warm cream */
-      --card: #ffffff;
-      --ink: #5b3a29;          /* dark brown outline, like in a picture book */
-      --text: #4a2c2a;         /* chocolate brown */
-      --wood-light: #efc28f;
-      --wood: #d39a5e;
-      --wood-dark: #a86f3c;
-      --green: #51cf66;
-      --blue: #4dabf7;
-      --batter: #f6e3b4;       /* colour of mixed pancake batter */
-      --sludge: #6f7d3c;       /* yuck */
+      --ink: #4b3832;          /* soft dark-brown outline */
+      --text: #4b3832;
+      --cream: #fbf1e1;        /* walls */
+      --tile: #dfeaf2;         /* blue-grey wall tiles */
+      --tile-line: #c6d7e4;
+      --cabinet: #92b4d4;      /* powder-blue cupboards */
+      --cabinet-light: #a9c5df;
+      --peach: #f4a582;
+      --coral: #e9735b;
+      --wood-light: #f1c896;
+      --wood: #dca56e;
+      --wood-dark: #b9814c;
+      --stove: #f6ecd9;        /* cream enamel stove */
+      --metal: #cfd8df;
+      --grate: #3d3a3a;
+      --green: #6cc57c;
+      --blue: #6aaee8;
+      --batter: #f6e3b4;
+      --sludge: #6f7d3c;
     }
 
-    /* Make sizes behave predictably */
     * {
       box-sizing: border-box;
     }
 
-    body {
+    html, body {
+      height: 100%;
       margin: 0;
+    }
+
+    body {
       font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
-      background: var(--background);
+      background: #f3e3cc;
       color: var(--text);
-      /* Keep content clear of the iPhone home bar */
-      padding: 0 16px calc(env(safe-area-inset-bottom) + 16px);
-      min-height: 100vh;
-      /* Stop iPhone highlighting things grey when tapped */
+      overflow: hidden;                      /* the game fills the screen, no scrolling */
       -webkit-tap-highlight-color: transparent;
       user-select: none;
       -webkit-user-select: none;
     }
 
-    /* Keep everything in a neat column, even on a big screen */
+    /* The whole game: a column that fills the phone screen */
     .game {
+      height: 100vh;
+      height: 100dvh;                        /* better height on iPhone, if supported */
       max-width: 480px;
       margin: 0 auto;
-    }
-
-    /* ===== The top part stays stuck to the top of the screen while
-       you scroll the pantry, so you can always see the bowl ===== */
-    .sticky-top {
-      position: sticky;
-      top: 0;
-      z-index: 10;
-      background: var(--background);
-      padding-top: calc(env(safe-area-inset-top) + 10px);
-      padding-bottom: 6px;
-    }
-
-    /* ===== Top bar: title and coins ===== */
-    .top-bar {
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 8px;
+      flex-direction: column;
+      padding: calc(env(safe-area-inset-top) + 8px) 12px calc(env(safe-area-inset-bottom) + 10px);
+      gap: 8px;
     }
 
-    h1 {
-      margin: 0;
-      font-size: 24px;
+    /* ============================================================
+       TOP: coins and the recipe card
+       ============================================================ */
+    .hud {
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
 
     .coins {
-      background: var(--card);
-      border: 3px solid var(--ink);
+      background: white;
+      border: 2.5px solid var(--ink);
       border-radius: 999px;
-      padding: 4px 14px;
-      font-size: 20px;
-      font-weight: bold;
+      padding: 6px 12px;
+      font-size: 18px;
+      font-weight: 800;
+      white-space: nowrap;
     }
 
-    /* Little "pop" when coins are added */
     .coins.pop {
       animation: pop 0.3s ease;
     }
@@ -92,149 +95,731 @@
       50% { transform: scale(1.25); }
     }
 
-    /* ===== The shop scene: wall, customer, counter ===== */
-    .scene {
-      position: relative;
-      height: 200px;
-      border: 3px solid var(--ink);
-      border-radius: 20px;
-      overflow: hidden;
-      /* Striped mint wallpaper */
-      background:
-        repeating-linear-gradient(90deg, #dff3ea 0 22px, #d2ede1 22px 44px);
+    /* The recipe card, pinned up like a note */
+    .recipe {
+      flex: 1;
+      background: #fffdf7;
+      border: 2.5px solid var(--ink);
+      border-radius: 12px;
+      padding: 6px 10px;
+      transform: rotate(-1deg);
+      box-shadow: 0 3px 0 rgba(75, 56, 50, 0.25);
     }
 
-    /* The customer, standing behind the counter */
+    .recipe-title {
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    .recipe-slots {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: 3px;
+      font-size: 13px;
+    }
+
+    /* One empty box on the recipe card (fills with an emoji when done) */
+    .slot {
+      width: 26px;
+      height: 26px;
+      border: 2px dashed #c9b8a8;
+      border-radius: 7px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+    }
+
+    .slot.filled {
+      border: 2px solid var(--green);
+      background: #eefaf0;
+    }
+
+    /* ============================================================
+       MESSAGE LINE
+       ============================================================ */
+    .message {
+      min-height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      font-size: 15px;
+      font-weight: 700;
+      line-height: 1.25;
+      padding: 0 6px;
+    }
+
+    .message.good { color: #2f8a45; }
+    .message.oops { color: #d9480f; }
+
+    /* ============================================================
+       THE ROOM: two views side by side (kitchen, pantry).
+       Turning around slides from one to the other.
+       ============================================================ */
+    .viewport {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+      border: 3px solid var(--ink);
+      border-radius: 22px;
+      background: var(--cream);
+      min-height: 0;   /* lets it shrink on small phones */
+    }
+
+    .room {
+      display: flex;
+      width: 200%;
+      height: 100%;
+      transition: transform 0.7s cubic-bezier(0.65, 0, 0.35, 1);
+    }
+
+    /* Facing the pantry: slide the room left by one view */
+    .room.facing-pantry {
+      transform: translateX(-50%);
+    }
+
+    /* A little "dip" while turning, like your head moving */
+    .viewport.turning {
+      animation: turn-dip 0.7s ease;
+    }
+
+    @keyframes turn-dip {
+      50% { transform: scale(0.96); }
+    }
+
+    .view {
+      width: 50%;
+      height: 100%;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ============================================================
+       KITCHEN VIEW
+       ============================================================ */
+
+    /* --- The wall: cream on top, tiles lower down --- */
+    .wall {
+      flex: 1;
+      position: relative;
+      min-height: 170px;
+      background: var(--cream);
+    }
+
+    .backsplash {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 42%;
+      background-color: var(--tile);
+      background-image:
+        linear-gradient(var(--tile-line) 2px, transparent 2px),
+        linear-gradient(90deg, var(--tile-line) 2px, transparent 2px);
+      background-size: 26px 26px;
+      border-top: 2.5px solid var(--ink);
+    }
+
+    /* --- The serving hatch (window) where customers appear --- */
+    .hatch {
+      position: absolute;
+      left: 12px;
+      top: 14px;
+      width: 46%;
+      height: 60%;
+      max-height: 210px;
+      border: 8px solid var(--wood);
+      outline: 2.5px solid var(--ink);
+      border-radius: 16px 16px 6px 6px;
+      overflow: hidden;
+      /* Sky outside, with two soft clouds */
+      background:
+        radial-gradient(ellipse 30px 12px at 30% 28%, white 90%, transparent),
+        radial-gradient(ellipse 22px 9px at 75% 18%, white 90%, transparent),
+        linear-gradient(#a9d8f0, #e4f4fb);
+    }
+
+    /* Scalloped peach curtain along the top of the window */
+    .valance {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 18px;
+      background:
+        radial-gradient(circle at 10px 8px, var(--peach) 10px, transparent 10.5px) 0 0 / 20px 18px repeat-x;
+      z-index: 2;
+    }
+
+    /* The customer, peeking in through the hatch */
     .customer {
       position: absolute;
-      left: 14px;
-      bottom: 42px;
-      font-size: 86px;
+      left: 50%;
+      bottom: -6px;
+      font-size: 78px;
       line-height: 1;
-      z-index: 1;
-      animation: bob 2.4s ease-in-out infinite;  /* gentle breathing */
+      transform: translateX(-50%);
+      animation: bob 2.4s ease-in-out infinite;
     }
 
     @keyframes bob {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-4px); }
+      0%, 100% { transform: translateX(-50%) translateY(0); }
+      50% { transform: translateX(-50%) translateY(-4px); }
     }
 
-    /* Happy jump when served */
     .customer.bounce {
       animation: bounce 0.5s ease 3;
     }
 
     @keyframes bounce {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-18px); }
+      0%, 100% { transform: translateX(-50%) translateY(0); }
+      50% { transform: translateX(-50%) translateY(-18px); }
     }
 
-    /* The speech bubble */
+    /* A new customer pops up from below */
+    .customer.arrive {
+      animation: arrive 0.6s ease-out;
+    }
+
+    @keyframes arrive {
+      from { transform: translateX(-50%) translateY(100%); }
+      to { transform: translateX(-50%) translateY(0); }
+    }
+
+    /* The wooden window sill, with a little plant */
+    .sill {
+      position: absolute;
+      left: 4px;
+      width: calc(46% + 16px);
+      height: 12px;
+      background: var(--wood-light);
+      border: 2.5px solid var(--ink);
+      border-radius: 4px;
+    }
+
+    .plant {
+      position: absolute;
+      font-size: 28px;
+      line-height: 1;
+    }
+
+    /* --- The speech bubble --- */
     .bubble {
       position: absolute;
-      left: 112px;
       right: 12px;
-      top: 12px;
-      background: var(--card);
-      border: 3px solid var(--ink);
+      top: 18px;
+      width: 44%;
+      background: white;
+      border: 2.5px solid var(--ink);
       border-radius: 16px;
-      padding: 8px 12px;
-      font-size: 16px;
+      padding: 8px 10px;
+      font-size: 15px;
       font-weight: 700;
-      z-index: 4;
+      z-index: 3;
     }
 
-    /* The little pointy tail on the bubble */
     .bubble::before {
       content: "";
       position: absolute;
-      left: -12px;
-      top: 14px;
+      left: -13px;
+      top: 16px;
       border: 7px solid transparent;
       border-right: 10px solid var(--ink);
     }
 
-    /* The wooden counter at the bottom of the scene */
-    .counter {
+    /* --- Cooker hood above the stove --- */
+    .hood {
+      position: absolute;
+      right: 20px;
+      bottom: 58px;
+      width: 44%;
+      height: 44px;
+      background: linear-gradient(90deg, #efe2c9, var(--stove) 40%, #efe2c9);
+      border: 2.5px solid var(--ink);
+      border-radius: 12px 12px 4px 4px;
+      z-index: 1;
+    }
+
+    /* The chimney going up from the hood */
+    .hood::before {
+      content: "";
+      position: absolute;
+      left: 34%;
+      width: 32%;
+      bottom: 100%;
+      height: 400px;            /* tall enough to reach past the top of the tiles */
+      background: var(--stove);
+      border: 2.5px solid var(--ink);
+      border-bottom: none;
+    }
+
+    /* Warm light under the hood */
+    .hood::after {
+      content: "";
+      position: absolute;
+      left: 30%;
+      right: 30%;
+      bottom: 4px;
+      height: 5px;
+      border-radius: 999px;
+      background: #ffe8a3;
+      border: 1.5px solid var(--ink);
+    }
+
+    /* --- A little wall shelf with pretty things on it --- */
+    .wall-shelf {
+      position: absolute;
+      left: 14px;
+      bottom: 46px;
+      width: 40%;
+      z-index: 1;
+    }
+
+    .wall-shelf-items {
+      display: flex;
+      justify-content: space-around;
+      align-items: flex-end;
+      font-size: 28px;
+      line-height: 1;
+      padding: 0 4px;
+    }
+
+    .wall-shelf-plank {
+      height: 10px;
+      background: var(--wood-light);
+      border: 2.5px solid var(--ink);
+      border-radius: 4px;
+      box-shadow: 0 5px 6px rgba(0, 0, 0, 0.12);
+    }
+
+    /* --- The utensil rail with tools hanging from it --- */
+    .rail {
+      position: absolute;
+      right: 14px;
+      width: 42%;
+      height: 8px;
+      background: linear-gradient(#eef2f5, #aab5be);
+      border: 2px solid var(--ink);
+      border-radius: 999px;
+      z-index: 2;
+    }
+
+    .tools {
+      position: absolute;
+      right: 14px;
+      width: 42%;
+      display: flex;
+      justify-content: space-around;
+      z-index: 2;
+    }
+
+    /* One hanging tool (a button): hook, tool, little tag */
+    .tool {
+      background: none;
+      border: none;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      font-family: inherit;
+      color: var(--text);
+      transform-origin: top center;
+      animation: swing 3s ease-in-out infinite;
+      touch-action: manipulation;
+    }
+
+    .tool:nth-child(2) {
+      animation-delay: -1.5s;   /* swing out of step with the first tool */
+    }
+
+    @keyframes swing {
+      0%, 100% { transform: rotate(-3deg); }
+      50% { transform: rotate(3deg); }
+    }
+
+    .tool .hook {
+      width: 3px;
+      height: 14px;
+      background: var(--ink);
+      border-radius: 2px;
+    }
+
+    .tool .tool-emoji {
+      font-size: 40px;
+      line-height: 1;
+      transform: rotate(180deg);   /* hanging upside down from the hook */
+      filter: drop-shadow(2px 3px 0 rgba(0, 0, 0, 0.15));
+    }
+
+    .tool .tag {
+      margin-top: 2px;
+      background: white;
+      border: 2px solid var(--ink);
+      border-radius: 6px;
+      padding: 1px 6px;
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    /* Taken off the rail */
+    .tool.used {
+      opacity: 0.3;
+      animation: none;
+    }
+
+    /* A "no thanks" shake for the wrong tool */
+    .shake {
+      animation: shake 0.4s ease !important;
+    }
+
+    @keyframes shake {
+      25% { transform: translateX(-5px) rotate(-6deg); }
+      75% { transform: translateX(5px) rotate(6deg); }
+    }
+
+    /* --- The worktop: bowl on the counter, stove top on the right --- */
+    .worktop {
+      height: 128px;
+      position: relative;
+      flex-shrink: 0;
+      background-color: var(--tile);
+      background-image:
+        linear-gradient(var(--tile-line) 2px, transparent 2px),
+        linear-gradient(90deg, var(--tile-line) 2px, transparent 2px);
+      background-size: 26px 26px;
+    }
+
+    /* The wooden counter surface */
+    .counter-top {
       position: absolute;
       left: 0;
       right: 0;
       bottom: 0;
-      height: 50px;
-      z-index: 2;
-      border-top: 3px solid var(--ink);
-      /* Light worktop strip on top, darker front, plus faint wood grain */
+      height: 26px;
+      border-top: 2.5px solid var(--ink);
       background:
-        repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.06) 0 2px, transparent 2px 9px),
-        linear-gradient(var(--wood-light) 0 10px, var(--ink) 10px 12px, var(--wood) 12px);
+        repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.05) 0 2px, transparent 2px 30px),
+        linear-gradient(var(--wood-light) 0 60%, var(--wood) 60%);
     }
 
-    /* ===== The "station": where the bowl, pan or plate sits ===== */
+    /* The cream stove top with two burners */
+    .stove-top {
+      position: absolute;
+      right: 10px;
+      bottom: 0;
+      width: 52%;
+      height: 30px;
+      background: var(--stove);
+      border: 2.5px solid var(--ink);
+      border-bottom: none;
+      border-radius: 8px 8px 0 0;
+    }
+
+    .burner {
+      position: absolute;
+      top: 5px;
+      width: 40%;
+      height: 14px;
+      border-radius: 50%;
+      background: radial-gradient(ellipse, #6b6464 30%, var(--grate) 60%);
+      border: 2px solid var(--grate);
+    }
+
+    .burner.back { left: 6%; }
+    .burner.front { right: 6%; }
+
+    /* Gas flames under the pan (only shown while cooking) */
+    .flames {
+      position: absolute;
+      right: 10%;
+      top: -4px;
+      width: 32%;
+      display: flex;
+      justify-content: space-around;
+      z-index: 1;
+    }
+
+    .flame {
+      width: 8px;
+      height: 13px;
+      border-radius: 50% 50% 50% 50% / 65% 65% 35% 35%;
+      background: linear-gradient(#ffd166, #ff8a3d 60%, #5aa9e6);
+      animation: flicker 0.25s ease-in-out infinite alternate;
+    }
+
+    .flame:nth-child(2) { animation-delay: 0.1s; }
+    .flame:nth-child(3) { animation-delay: 0.05s; }
+
+    @keyframes flicker {
+      to { transform: scaleY(1.3) translateY(-2px); }
+    }
+
+    /* A steaming pot on the back burner, just for looks */
+    .pot {
+      position: absolute;
+      bottom: 24px;
+      width: 48px;
+      height: 40px;
+      border: 2.5px solid var(--ink);
+      border-radius: 6px 6px 14px 14px;
+      background: linear-gradient(90deg, #7fb2b0, #b8dcd9 35%, #7fb2b0);
+      z-index: 2;
+    }
+
+    /* Pot rim */
+    .pot::before {
+      content: "";
+      position: absolute;
+      left: -6px;
+      right: -6px;
+      top: -6px;
+      height: 10px;
+      background: #9cc9c6;
+      border: 2.5px solid var(--ink);
+      border-radius: 6px;
+    }
+
+    /* Pot handle */
+    .pot::after {
+      content: "";
+      position: absolute;
+      left: -14px;
+      top: 10px;
+      width: 10px;
+      height: 6px;
+      border: 2.5px solid var(--ink);
+      border-radius: 4px;
+      background: #9cc9c6;
+    }
+
+    /* Puffs of steam rising from the pot */
+    .steam {
+      position: absolute;
+      top: -18px;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: white;
+      opacity: 0;
+      animation: steam 2.4s ease-out infinite;
+    }
+
+    @keyframes steam {
+      0% { transform: translateY(0) scale(0.6); opacity: 0; }
+      30% { opacity: 0.9; }
+      100% { transform: translateY(-40px) scale(1.5); opacity: 0; }
+    }
+
+    /* --- Cupboards and oven along the bottom --- */
+    .cabinets {
+      height: 108px;
+      flex-shrink: 0;
+      display: flex;
+      border-top: 2.5px solid var(--ink);
+      background: var(--wood-dark);
+    }
+
+    /* Powder-blue cupboard with two doors */
+    .cupboard {
+      flex: 1;
+      display: flex;
+      gap: 6px;
+      padding: 8px;
+      background: var(--cabinet);
+    }
+
+    .door {
+      flex: 1;
+      position: relative;
+      border: 2.5px solid var(--ink);
+      border-radius: 8px;
+      background: var(--cabinet-light);
+      box-shadow: inset 0 0 0 5px var(--cabinet);
+    }
+
+    /* Round peach knob on each door */
+    .door::after {
+      content: "";
+      position: absolute;
+      top: 40%;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--peach);
+      border: 2px solid var(--ink);
+    }
+
+    .door:first-child::after { right: 6px; }
+    .door:last-child::after { left: 6px; }
+
+    /* The cream oven under the stove */
+    .oven {
+      width: 52%;
+      margin-right: 10px;
+      background: var(--stove);
+      border-left: 2.5px solid var(--ink);
+      border-right: 2.5px solid var(--ink);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 4px 8px 8px;
+      gap: 4px;
+    }
+
+    .knob-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* A small decorative knob */
+    .knob {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: white;
+      border: 2px solid var(--ink);
+    }
+
+    /* The big "Cook" knob (a button): turning it lights the gas */
+    .cook-knob {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      background: none;
+      border: none;
+      padding: 0;
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--text);
+      touch-action: manipulation;
+    }
+
+    .cook-knob .dial {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: var(--coral);
+      border: 2.5px solid var(--ink);
+      position: relative;
+      transition: transform 0.4s ease;
+    }
+
+    /* The little line on the dial */
+    .cook-knob .dial::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 3px;
+      width: 3px;
+      height: 9px;
+      margin-left: -1.5px;
+      background: white;
+      border-radius: 2px;
+    }
+
+    .cook-knob.on .dial {
+      transform: rotate(120deg);
+    }
+
+    /* Oven door with a dark glass window and a handle */
+    .oven-door {
+      flex: 1;
+      width: 100%;
+      border: 2.5px solid var(--ink);
+      border-radius: 8px;
+      position: relative;
+      background: #efe2c9;
+      padding: 10px 12px 8px;
+    }
+
+    .oven-door::before {
+      content: "";
+      position: absolute;
+      left: 20%;
+      right: 20%;
+      top: 3px;
+      height: 5px;
+      border-radius: 999px;
+      background: var(--metal);
+      border: 1.5px solid var(--ink);
+    }
+
+    .oven-glass {
+      height: 100%;
+      border-radius: 6px;
+      background: linear-gradient(135deg, #4a4545, #2e2a2a);
+      border: 2px solid var(--ink);
+    }
+
+    /* ============================================================
+       THE COOKING STATION: where the bowl, pan or plate sits
+       ============================================================ */
     .station {
       position: absolute;
-      right: 14px;
-      bottom: 26px;
-      width: 150px;
-      height: 100px;
+      width: 140px;
+      height: 96px;
       z-index: 3;
-      touch-action: none;   /* so stirring with a finger doesn't scroll the page */
+      touch-action: none;   /* stirring with a finger shouldn't scroll */
     }
 
-    /* --- The mixing bowl (seen from the side, slightly from above) --- */
+    /* --- Mixing bowl --- */
     .bowl {
       position: absolute;
       left: 0;
       bottom: 0;
-      width: 150px;
-      height: 74px;
+      width: 140px;
+      height: 70px;
     }
 
-    /* The round body of the bowl, with a shiny highlight */
     .bowl-body {
       position: absolute;
       bottom: 0;
       width: 100%;
-      height: 62px;
-      border: 3px solid var(--ink);
+      height: 58px;
+      border: 2.5px solid var(--ink);
       border-top: none;
-      border-radius: 0 0 75px 75px / 0 0 62px 62px;
-      background: linear-gradient(90deg, #d4e3ee, #ffffff 30%, #e6eff5 55%, #b7cad8);
+      border-radius: 0 0 70px 70px / 0 0 58px 58px;
+      /* Peach bowl with a white band, like a pretty ceramic bowl */
+      background:
+        linear-gradient(90deg, rgba(255, 255, 255, 0) 15%, rgba(255, 255, 255, 0.55) 30%, rgba(255, 255, 255, 0) 45%),
+        linear-gradient(var(--peach) 0 38%, #fff6ee 38% 52%, var(--peach) 52%);
     }
 
-    /* The top edge of the bowl: an oval, so it looks 3D */
     .bowl-rim {
       position: absolute;
       top: 0;
       width: 100%;
-      height: 24px;
-      border: 3px solid var(--ink);
+      height: 22px;
+      border: 2.5px solid var(--ink);
       border-radius: 50%;
-      background: #a9bfcf;   /* the shadowy inside of the bowl */
+      background: #e08e6d;   /* shadowy inside */
       z-index: 1;
     }
 
-    /* The food inside the bowl (an oval that changes colour) */
     .bowl-contents {
       position: absolute;
       top: 4px;
       left: 9%;
       width: 82%;
-      height: 16px;
+      height: 14px;
       border-radius: 50%;
       background: transparent;
       transition: background 0.5s;
       z-index: 2;
     }
 
-    /* The ingredient emoji poking out of the top of the bowl */
     .bowl-items {
       position: absolute;
       top: -16px;
       left: 0;
       width: 100%;
       text-align: center;
-      font-size: 26px;
+      font-size: 24px;
       line-height: 1;
       z-index: 3;
       transition: opacity 0.3s;
@@ -245,7 +830,6 @@
       margin: 0 -3px;
     }
 
-    /* Bowl gives a little jiggle when something lands in it */
     .bowl.jiggle {
       animation: jiggle 0.35s ease;
     }
@@ -255,7 +839,6 @@
       60% { transform: scaleX(0.97) scaleY(1.03); }
     }
 
-    /* While stirring, the ingredients spin round */
     .bowl-items.swirl span {
       animation: spin 0.6s linear infinite;
     }
@@ -264,17 +847,16 @@
       to { transform: rotate(360deg); }
     }
 
-    /* Glowing hint: "touch me!" */
+    /* Glowing "touch me" hint */
     .hint {
       animation: hint 1s ease-in-out infinite;
     }
 
     @keyframes hint {
       0%, 100% { filter: drop-shadow(0 0 0 #ffd43b); }
-      50% { filter: drop-shadow(0 0 10px #ffd43b); }
+      50% { filter: drop-shadow(0 0 10px #ffb700); }
     }
 
-    /* The spoon that follows your finger while stirring */
     .spoon {
       position: absolute;
       font-size: 34px;
@@ -284,8 +866,8 @@
       z-index: 6;
     }
 
-    /* --- Sludge! --- */
-    .station.sludge .bowl {
+    /* --- Sludge --- */
+    .bowl.sludgy {
       animation: wobble 0.6s ease 2;
     }
 
@@ -294,11 +876,10 @@
       75% { transform: rotate(4deg); }
     }
 
-    /* Bubbles that rise out of the sludge */
     .sludge-bubble {
       position: absolute;
       top: -6px;
-      font-size: 16px;
+      font-size: 15px;
       opacity: 0;
       z-index: 5;
       animation: rise 1.6s ease-in infinite;
@@ -307,36 +888,36 @@
     @keyframes rise {
       0% { transform: translateY(0) scale(0.5); opacity: 0; }
       30% { opacity: 1; }
-      100% { transform: translateY(-46px) scale(1.1); opacity: 0; }
+      100% { transform: translateY(-44px) scale(1.1); opacity: 0; }
     }
 
-    /* --- The frying pan (seen at an angle) --- */
+    /* --- Frying pan, sitting on the front burner --- */
     .pan {
       position: absolute;
-      left: 0;
-      bottom: 4px;
-      width: 112px;
-      height: 54px;
-      border: 3px solid #1d1d1d;
+      width: 90px;
+      height: 40px;
+      border: 2.5px solid #1d1d1d;
       border-radius: 50%;
-      background: radial-gradient(ellipse at 50% 40%, #5a5a5a, #222 70%);
-      perspective: 300px;   /* makes the pancake flip look 3D */
+      background: radial-gradient(ellipse at 50% 40%, #5c5c5c, #232323 70%);
+      perspective: 300px;     /* makes the flip look 3D */
+      z-index: 3;
+      touch-action: manipulation;
     }
 
-    /* The pan handle */
+    /* Coral handle, like the pan in the picture */
     .pan::after {
       content: "";
       position: absolute;
-      right: -44px;
-      top: 18px;
-      width: 48px;
-      height: 12px;
-      background: #3b2a20;
-      border: 3px solid #1d1d1d;
+      right: -24px;
+      top: 22px;
+      width: 30px;
+      height: 10px;
+      background: var(--coral);
+      border: 2.5px solid var(--ink);
       border-radius: 6px;
+      transform: rotate(18deg);
     }
 
-    /* The pancake: starts as nothing, grows as batter pours in */
     .pancake {
       position: absolute;
       left: 50%;
@@ -350,16 +931,14 @@
     }
 
     .pancake.poured {
-      width: 78%;
-      height: 70%;
+      width: 76%;
+      height: 68%;
     }
 
-    /* Turning golden while it cooks */
     .pancake.cooking {
       background: radial-gradient(circle at 40% 40%, #f2c46d, #d99a3e);
     }
 
-    /* Little sizzling bubbles on top while cooking */
     .pancake.cooking::after {
       content: "";
       position: absolute;
@@ -374,7 +953,6 @@
       50% { opacity: 0.2; }
     }
 
-    /* The flip: up in the air, spin over, land back down */
     .pancake.flipping {
       animation: flip 0.8s ease-in-out forwards;
     }
@@ -385,20 +963,21 @@
 
     @keyframes flip {
       0%   { transform: translate(-50%, -50%) rotateX(0); }
-      50%  { transform: translate(-50%, -220%) rotateX(100deg); }
+      50%  { transform: translate(-50%, -240%) rotateX(100deg); }
       100% { transform: translate(-50%, -50%) rotateX(180deg); }
     }
 
-    /* --- The plate with the finished dish --- */
+    /* --- Plate with the finished dish --- */
     .plate {
       position: absolute;
-      left: 10px;
+      left: 6px;
       bottom: 2px;
-      width: 130px;
-      height: 30px;
-      border: 3px solid var(--ink);
+      width: 128px;
+      height: 28px;
+      border: 2.5px solid var(--ink);
       border-radius: 50%;
-      background: radial-gradient(ellipse, #ffffff 50%, #dfe7ee);
+      /* White plate with a pretty peach rim */
+      background: radial-gradient(ellipse, #ffffff 48%, var(--peach) 52% 62%, #fff6ee 66%);
     }
 
     .plate-food {
@@ -407,17 +986,15 @@
       right: 0;
       bottom: 6px;
       text-align: center;
-      font-size: 60px;
+      font-size: 58px;
       line-height: 1;
     }
 
-    /* The stirring progress bar, on the front of the counter */
+    /* Stirring progress bar */
     .mix-bar {
       position: absolute;
-      right: 14px;
-      bottom: 8px;
-      width: 150px;
-      height: 12px;
+      width: 130px;
+      height: 10px;
       border: 2px solid var(--ink);
       border-radius: 999px;
       background: white;
@@ -431,121 +1008,87 @@
       background: var(--green);
     }
 
-    /* ===== The friendly message line ===== */
-    .message {
-      min-height: 46px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      font-size: 17px;
-      font-weight: 700;
-      padding: 4px 0;
-    }
-
-    .message.good { color: #2b8a3e; }
-    .message.oops { color: #e03131; }
-
-    /* ===== Section headings ===== */
-    h2 {
-      margin: 8px 0;
-      font-size: 18px;
-    }
-
-    /* ===== Big tappable buttons (cooking steps, next customer, wash) ===== */
-    .button-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
-    }
-
-    .big-button {
-      border: 3px solid var(--ink);
-      border-radius: 18px;
-      padding: 10px 4px;
-      min-height: 90px;
-      font-size: 16px;
-      font-weight: 700;
-      color: var(--text);
-      background: var(--card);
-      box-shadow: 0 5px 0 var(--ink);   /* thick "3D" bottom edge */
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 4px;
-      touch-action: manipulation;
-      font-family: inherit;
-    }
-
-    .big-button .emoji {
-      font-size: 38px;
-    }
-
-    /* Pressed-down effect */
-    .big-button:active {
-      transform: translateY(4px);
-      box-shadow: 0 1px 0 var(--ink);
-    }
-
-    .big-button:disabled {
-      opacity: 0.35;
-    }
-
-    .step-button { background: #ffe3ec; }
-
-    .wide-button {
-      width: 100%;
-      min-height: 64px;
-      font-size: 21px;
-      color: white;
-      margin-top: 4px;
-    }
-
-    .next-button { background: var(--green); }
-    .wash-button { background: var(--blue); }
-
-    /* ===== The pantry: a wooden cupboard full of glass jars ===== */
-    .pantry {
-      border: 10px solid var(--wood);
-      outline: 3px solid var(--ink);
-      border-radius: 6px;
+    /* ============================================================
+       PANTRY VIEW (behind you)
+       ============================================================ */
+    .pantry-view {
+      background: var(--cream);
       padding: 10px 10px 0;
-      /* Pale tiled wall behind the shelves */
+      overflow-y: auto;          /* scrolls on very small phones */
+    }
+
+    /* The big wooden cupboard */
+    .cupboard-frame {
+      border: 9px solid var(--wood);
+      outline: 2.5px solid var(--ink);
+      border-radius: 6px;
+      padding: 6px 8px 0;
+      margin: 2px;
       background-color: #fbf6ee;
       background-image:
         linear-gradient(#ece2d3 1.5px, transparent 1.5px),
         linear-gradient(90deg, #ece2d3 1.5px, transparent 1.5px);
       background-size: 30px 20px;
-      /* Shadow inside the cupboard makes it look deep (3D) */
       box-shadow: inset 0 14px 18px rgba(0, 0, 0, 0.18), inset 10px 0 14px rgba(0, 0, 0, 0.08), inset -10px 0 14px rgba(0, 0, 0, 0.08);
-      margin: 6px 3px 0;
     }
 
-    /* One shelf: a row of jars and a plank underneath */
+    /* Top shelf: decorations only (canisters, granola, plant) */
+    .decor-row {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      padding: 0 4px;
+      height: 46px;
+    }
+
+    .canister {
+      width: 34px;
+      height: 32px;
+      border: 2.5px solid var(--ink);
+      border-radius: 6px;
+      background: linear-gradient(90deg, #2a9d8f, #4fc1b2 40%, #2a9d8f);
+      position: relative;
+    }
+
+    .canister::before {
+      content: "";
+      position: absolute;
+      left: -3px;
+      right: -3px;
+      top: -7px;
+      height: 7px;
+      background: #24877b;
+      border: 2.5px solid var(--ink);
+      border-radius: 4px;
+    }
+
+    .decor-emoji {
+      font-size: 30px;
+      line-height: 1;
+    }
+
     .shelf {
-      margin-bottom: 14px;
+      margin-bottom: 10px;
     }
 
     .jar-row {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      gap: 8px;
-      align-items: end;     /* all jars stand on the plank */
+      gap: 7px;
+      align-items: end;
       padding: 0 2px;
-      perspective: 400px;   /* lets jars tilt in 3D */
+      perspective: 400px;
     }
 
-    /* The wooden plank: light top surface, darker front edge, wood grain */
     .plank {
-      height: 18px;
-      margin: 0 -10px;
-      border-top: 3px solid var(--ink);
-      border-bottom: 3px solid var(--ink);
+      height: 15px;
+      margin: 0 -8px;
+      border-top: 2.5px solid var(--ink);
+      border-bottom: 2.5px solid var(--ink);
       background:
         repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.05) 0 2px, transparent 2px 26px),
         linear-gradient(var(--wood-light) 0 5px, var(--wood) 5px);
-      box-shadow: 0 7px 8px rgba(0, 0, 0, 0.18);   /* shadow on the wall below */
+      box-shadow: 0 6px 8px rgba(0, 0, 0, 0.16);
     }
 
     /* A whole jar: lid + glass + shadow. It's really a button. */
@@ -564,38 +1107,34 @@
       transform-origin: bottom center;
     }
 
-    /* The lid */
     .lid {
       width: 84%;
-      height: 12px;
-      border: 3px solid var(--ink);
+      height: 11px;
+      border: 2.5px solid var(--ink);
       border-radius: 5px 5px 2px 2px;
       background:
         repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.12) 0 2px, transparent 2px 6px),
         var(--lid);
-      margin-bottom: -3px;   /* sits snugly on the jar */
+      margin-bottom: -3px;
       position: relative;
       z-index: 1;
       transition: transform 0.25s ease;
     }
 
-    /* The glass part */
     .jar {
       position: relative;
       width: 100%;
-      height: 80px;
-      border: 3px solid var(--ink);
+      height: 66px;
+      border: 2.5px solid var(--ink);
       border-radius: 10px 10px 12px 12px;
       background: rgba(225, 242, 246, 0.75);
       overflow: hidden;
     }
 
-    /* Every other jar is shorter, so the shelves look natural */
     .jar-wrap:nth-child(even) .jar {
-      height: 68px;
+      height: 58px;
     }
 
-    /* The food inside: its colour, plus speckles so it looks like grains */
     .contents {
       position: absolute;
       left: 0;
@@ -611,7 +1150,6 @@
       border-top: 2px solid rgba(0, 0, 0, 0.12);
     }
 
-    /* The shiny streak on the glass */
     .shine {
       position: absolute;
       left: 9%;
@@ -622,33 +1160,31 @@
       background: linear-gradient(rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.2));
     }
 
-    /* The white label stuck on the front */
     .label {
       position: absolute;
       left: 50%;
-      top: 54%;
+      top: 55%;
       transform: translate(-50%, -50%);
       background: white;
       border: 2px solid var(--ink);
       border-radius: 6px;
-      padding: 2px 3px 1px;
+      padding: 1px 2px;
       display: flex;
       flex-direction: column;
       align-items: center;
-      min-width: 76%;
+      min-width: 78%;
     }
 
     .label .emoji {
-      font-size: 20px;
+      font-size: 18px;
       line-height: 1.1;
     }
 
     .label .name {
-      font-size: 10px;
+      font-size: 9.5px;
       font-weight: 800;
     }
 
-    /* Soft shadow under the jar */
     .jar-shadow {
       width: 90%;
       height: 6px;
@@ -658,7 +1194,7 @@
       transition: opacity 0.25s, transform 0.25s;
     }
 
-    /* Picked up! The jar lifts, tilts towards you, and the lid pops up */
+    /* Picked up! Lifts, tilts towards you, lid pops */
     .jar-wrap.lifted {
       transform: translateY(-16px) rotateX(18deg) rotateZ(-10deg) scale(1.08);
     }
@@ -676,7 +1212,101 @@
       opacity: 0.4;
     }
 
-    /* An emoji flying through the air (from jar to bowl, or coins) */
+    /* Bottom of the pantry: a fruit basket and your bowl on a board */
+    .pantry-floor {
+      position: relative;
+      height: 104px;
+      margin-top: 6px;
+    }
+
+    .basket {
+      position: absolute;
+      left: 4px;
+      bottom: 8px;
+      width: 110px;
+      height: 44px;
+      border: 2.5px solid var(--ink);
+      border-radius: 6px 6px 14px 14px;
+      /* Woven wicker pattern */
+      background:
+        repeating-linear-gradient(45deg, rgba(0, 0, 0, 0.12) 0 3px, transparent 3px 8px),
+        repeating-linear-gradient(-45deg, rgba(0, 0, 0, 0.08) 0 3px, transparent 3px 8px),
+        #d8a868;
+    }
+
+    .basket-fruit {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: -22px;
+      text-align: center;
+      font-size: 24px;
+      letter-spacing: -4px;
+      white-space: nowrap;
+    }
+
+    /* The wooden board the bowl sits on in the pantry */
+    .board {
+      position: absolute;
+      right: 4px;
+      bottom: 0;
+      width: 168px;
+      height: 14px;
+      border: 2.5px solid var(--ink);
+      border-radius: 6px;
+      background: var(--wood-light);
+    }
+
+    .board-label {
+      position: absolute;
+      right: 0;
+      top: 0;
+      font-size: 11px;
+      font-weight: 800;
+      opacity: 0.6;
+    }
+
+    /* ============================================================
+       BOTTOM BAR: turn around, wash bowl, next customer
+       ============================================================ */
+    .bottom-bar {
+      display: flex;
+      gap: 8px;
+    }
+
+    .big-button {
+      flex: 1;
+      border: 2.5px solid var(--ink);
+      border-radius: 16px;
+      min-height: 54px;
+      font-size: 18px;
+      font-weight: 800;
+      font-family: inherit;
+      color: var(--text);
+      background: white;
+      box-shadow: 0 4px 0 var(--ink);
+      touch-action: manipulation;
+    }
+
+    .big-button:active {
+      transform: translateY(3px);
+      box-shadow: 0 1px 0 var(--ink);
+    }
+
+    .turn-button { background: #fff6e8; }
+    .wash-button { background: var(--blue); color: white; }
+    .next-button { background: var(--green); color: white; }
+
+    /* Gentle pulse on a button the player should tap next */
+    .pulse {
+      animation: pulse 1s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      50% { transform: scale(1.04); background: #ffe8a8; }
+    }
+
+    /* An emoji flying through the air */
     .flyer {
       position: fixed;
       z-index: 100;
@@ -684,7 +1314,6 @@
       line-height: 1;
     }
 
-    /* A class that simply hides things */
     .hidden {
       display: none !important;
     }
@@ -694,67 +1323,137 @@
 <body>
   <div class="game">
 
-    <!-- ===== This part stays at the top of the screen ===== -->
-    <div class="sticky-top">
-
-      <!-- Title and coin counter -->
-      <div class="top-bar">
-        <h1>🍳 Cooking Game</h1>
-        <div class="coins" id="coins-box">🪙 <span id="coins">0</span></div>
+    <!-- ===== Top: coins and recipe card ===== -->
+    <div class="hud">
+      <div class="coins" id="coins-box">🪙 <span id="coins">0</span></div>
+      <div class="recipe">
+        <div class="recipe-title" id="recipe-title">🥞 Pancakes</div>
+        <div class="recipe-slots">
+          <span id="ingredient-slots"></span>
+          <span>→</span>
+          <span id="step-slots"></span>
+        </div>
       </div>
+    </div>
 
-      <!-- The shop: customer, speech bubble, counter and cooking station -->
-      <div class="scene">
-        <div class="customer" id="customer">🧒</div>
-        <div class="bubble" id="bubble">I'd like pancakes, please! 🥞</div>
-        <div class="counter"></div>
+    <!-- ===== Friendly messages ===== -->
+    <div class="message" id="message"></div>
 
-        <div class="station" id="station">
-          <!-- The mixing bowl -->
-          <div class="bowl" id="bowl">
-            <div class="bowl-body"></div>
-            <div class="bowl-rim"></div>
-            <div class="bowl-contents" id="bowl-contents"></div>
-            <div class="bowl-items" id="bowl-items"></div>
+    <!-- ===== The room: kitchen in front, pantry behind ===== -->
+    <div class="viewport" id="viewport">
+      <div class="room" id="room">
+
+        <!-- ================= KITCHEN ================= -->
+        <div class="view kitchen-view">
+          <div class="wall">
+            <div class="backsplash"></div>
+
+            <!-- Cooker hood over the stove, and a shelf of pretty things -->
+            <div class="hood"></div>
+            <div class="wall-shelf">
+              <div class="wall-shelf-items"><span>🫖</span><span style="font-size: 22px;">🍯</span><span style="font-size: 20px;">🧂</span></div>
+              <div class="wall-shelf-plank"></div>
+            </div>
+
+            <!-- Serving hatch with the customer -->
+            <div class="hatch" id="hatch">
+              <div class="valance"></div>
+              <div class="customer" id="customer">🧒</div>
+            </div>
+            <div class="sill" id="sill"></div>
+            <div class="plant" id="plant">🪴</div>
+
+            <!-- What the customer says -->
+            <div class="bubble" id="bubble">I'd like pancakes, please! 🥞</div>
+
+            <!-- Utensil rail: these tools are cooking steps -->
+            <div class="rail" id="rail"></div>
+            <div class="tools" id="tools"></div>
           </div>
 
-          <!-- The frying pan (hidden until it's time to cook) -->
-          <div class="pan hidden" id="pan">
-            <div class="pancake" id="pancake"></div>
+          <div class="worktop" id="worktop">
+            <div class="counter-top"></div>
+
+            <!-- Stove top with a steaming pot and the frying pan -->
+            <div class="stove-top" id="stove-top">
+              <div class="burner back"></div>
+              <div class="burner front"></div>
+              <div class="flames hidden" id="flames">
+                <span class="flame"></span><span class="flame"></span><span class="flame"></span>
+              </div>
+            </div>
+            <div class="pot" id="pot">
+              <span class="steam" style="left: 10px;"></span>
+              <span class="steam" style="left: 30px; animation-delay: 0.8s;"></span>
+              <span class="steam" style="left: 20px; animation-delay: 1.6s;"></span>
+            </div>
+            <div class="pan" id="pan">
+              <div class="pancake" id="pancake"></div>
+            </div>
+
+            <!-- The bowl / plate station on the counter -->
+            <div class="station" id="kitchen-station">
+              <div class="bowl"></div>
+              <div class="hidden" id="plate">
+                <div class="plate"></div>
+                <div class="plate-food" id="plate-food">🥞</div>
+              </div>
+              <div class="spoon hidden" id="spoon">🥄</div>
+            </div>
+            <div class="mix-bar hidden" id="mix-bar"><div class="mix-fill" id="mix-fill"></div></div>
           </div>
 
-          <!-- The plate with the finished dish (hidden until served) -->
-          <div class="hidden" id="plate">
-            <div class="plate"></div>
-            <div class="plate-food" id="plate-food">🥞</div>
+          <!-- Cupboards and oven -->
+          <div class="cabinets">
+            <div class="cupboard">
+              <div class="door"></div>
+              <div class="door"></div>
+            </div>
+            <div class="oven">
+              <div class="knob-row">
+                <span class="knob"></span>
+                <button class="cook-knob" id="cook-knob"><span class="dial"></span>Cook</button>
+                <span class="knob"></span>
+              </div>
+              <div class="oven-door"><div class="oven-glass"></div></div>
+            </div>
           </div>
-
-          <!-- The spoon that follows your finger when stirring -->
-          <div class="spoon hidden" id="spoon">🥄</div>
         </div>
 
-        <!-- Stirring progress bar -->
-        <div class="mix-bar hidden" id="mix-bar"><div class="mix-fill" id="mix-fill"></div></div>
+        <!-- ================= PANTRY ================= -->
+        <div class="view pantry-view">
+          <div class="cupboard-frame">
+            <!-- Top shelf: just for looks -->
+            <div class="decor-row">
+              <span class="canister"></span>
+              <span class="decor-emoji">🥣</span>
+              <span class="canister"></span>
+              <span class="decor-emoji">🪴</span>
+            </div>
+            <div class="plank" style="margin-bottom: 10px;"></div>
+
+            <!-- Shelves of jars get added here by the code -->
+            <div id="shelves"></div>
+          </div>
+
+          <!-- Fruit basket and your bowl -->
+          <div class="pantry-floor">
+            <div class="basket"><div class="basket-fruit">🍎🍊🍌🍐</div></div>
+            <div class="board"></div>
+            <div class="station" id="pantry-station" style="right: 18px; bottom: 12px;">
+              <div class="bowl"></div>
+            </div>
+          </div>
+        </div>
+
       </div>
-
-      <!-- Friendly feedback appears here -->
-      <div class="message" id="message"></div>
-
-      <!-- These buttons only appear when needed -->
-      <button class="big-button wide-button wash-button hidden" id="wash-button">🧽 Wash the bowl</button>
-      <button class="big-button wide-button next-button hidden" id="next-button">Next customer ➡️</button>
     </div>
 
-    <!-- ===== Stage 1: pick ingredients from the pantry ===== -->
-    <div id="pantry-section">
-      <h2>Pantry: tap the jars you need</h2>
-      <div class="pantry" id="pantry"></div>
-    </div>
-
-    <!-- ===== Stage 2: cooking steps (hidden at first) ===== -->
-    <div id="steps-section" class="hidden">
-      <h2>Now cook it! Tap the steps in order</h2>
-      <div class="button-grid" id="steps"></div>
+    <!-- ===== Bottom bar ===== -->
+    <div class="bottom-bar">
+      <button class="big-button turn-button" id="turn-button">🔄 Pantry</button>
+      <button class="big-button wash-button hidden" id="wash-button">🧽 Wash the bowl</button>
+      <button class="big-button next-button hidden" id="next-button">Next customer ➡️</button>
     </div>
 
   </div>
@@ -769,6 +1468,7 @@
     // The one dish in Version 1
     const pancakes = {
       name: "pancakes",
+      title: "Pancakes",
       emoji: "🥞",
       ingredients: ["Flour", "Eggs", "Milk"],   // what's needed (any order)
       steps: ["Mix", "Cook"]                    // what to do (this order!)
@@ -796,17 +1496,20 @@
     ];
 
     // Lid colours for the jars (picked at random for each jar)
-    const lidColours = ["#2a9d8f", "#d39a5e", "#e9c46a", "#e76f51"];
+    const lidColours = ["#2a9d8f", "#dca56e", "#e9c46a", "#e9735b", "#92b4d4"];
 
     // How many jars fit on one shelf
     const jarsPerShelf = 4;
 
-    // All the cooking steps the player can choose from
-    const cookingSteps = [
+    // Tools hanging on the kitchen rail. Some are steps, some are distractors.
+    // ("Cook" isn't here: you cook by turning the knob on the oven.)
+    const railTools = [
       { name: "Mix",  emoji: "🥄" },
-      { name: "Cook", emoji: "🍳" },
       { name: "Chop", emoji: "🔪" }
     ];
+
+    // Emoji shown on the recipe card when a step is done
+    const stepEmoji = { Mix: "🥄", Cook: "🍳" };
 
     // Different faces so each customer feels new
     const customerFaces = ["🧒", "👧", "👦", "👩", "👨", "👵", "👴", "🧑‍🦰"];
@@ -823,14 +1526,15 @@
     // ============================================================
 
     let coins = 0;
-    let addedIngredients = [];  // ingredients put in the bowl so far
-    let stepsDone = 0;          // how many cooking steps finished so far
+    let addedIngredients = [];   // ingredients put in the bowl so far
+    let stepsDone = 0;           // how many cooking steps finished so far
     let currentDish = pancakes;
-    let currentFace = "🧒";     // the face of the customer being served
+    let currentFace = "🧒";      // the face of the customer being served
+    let facing = "kitchen";      // which way you're looking: "kitchen" or "pantry"
 
     // What's happening right now. This stops taps doing the wrong thing.
     // "pick" = choosing ingredients, "busy" = an animation is playing,
-    // "steps" = choosing a cooking step, "stirring", "cooking", "flip",
+    // "steps" = time to cook, "stirring", "cooking", "flip",
     // "sludge", "served"
     let stage = "pick";
 
@@ -844,26 +1548,69 @@
 
     const coinsText = document.getElementById("coins");
     const coinsBox = document.getElementById("coins-box");
+    const recipeTitle = document.getElementById("recipe-title");
+    const ingredientSlots = document.getElementById("ingredient-slots");
+    const stepSlots = document.getElementById("step-slots");
+    const message = document.getElementById("message");
+    const viewport = document.getElementById("viewport");
+    const room = document.getElementById("room");
     const customerFace = document.getElementById("customer");
     const bubble = document.getElementById("bubble");
-    const station = document.getElementById("station");
-    const bowl = document.getElementById("bowl");
-    const bowlContents = document.getElementById("bowl-contents");
-    const bowlItems = document.getElementById("bowl-items");
-    const pan = document.getElementById("pan");
-    const pancake = document.getElementById("pancake");
+    const toolsBox = document.getElementById("tools");
+    const kitchenStation = document.getElementById("kitchen-station");
+    const pantryStation = document.getElementById("pantry-station");
     const plate = document.getElementById("plate");
     const plateFood = document.getElementById("plate-food");
     const spoon = document.getElementById("spoon");
     const mixBar = document.getElementById("mix-bar");
     const mixFill = document.getElementById("mix-fill");
-    const message = document.getElementById("message");
+    const pan = document.getElementById("pan");
+    const pancake = document.getElementById("pancake");
+    const flames = document.getElementById("flames");
+    const cookKnob = document.getElementById("cook-knob");
+    const shelves = document.getElementById("shelves");
+    const turnButton = document.getElementById("turn-button");
     const washButton = document.getElementById("wash-button");
     const nextButton = document.getElementById("next-button");
-    const pantrySection = document.getElementById("pantry-section");
-    const pantryGrid = document.getElementById("pantry");
-    const stepsSection = document.getElementById("steps-section");
-    const stepsGrid = document.getElementById("steps");
+
+    // ============================================================
+    // LAYOUT
+    // Some things are positioned by code, because they depend on
+    // the size of the phone screen.
+    // ============================================================
+
+    function layoutKitchen() {
+      const hatch = document.getElementById("hatch");
+      const sill = document.getElementById("sill");
+      const plant = document.getElementById("plant");
+      const rail = document.getElementById("rail");
+      const stoveTop = document.getElementById("stove-top");
+      const pot = document.getElementById("pot");
+
+      // Sill sits just under the hatch, plant sits on the sill
+      const hatchBottom = hatch.offsetTop + hatch.offsetHeight;
+      sill.style.top = (hatchBottom - 2) + "px";
+      plant.style.top = (hatchBottom - 30) + "px";
+      plant.style.left = (hatch.offsetLeft + hatch.offsetWidth - 18) + "px";
+
+      // Rail goes under the speech bubble, tools hang from it
+      const railTop = bubble.offsetTop + bubble.offsetHeight + 14;
+      rail.style.top = railTop + "px";
+      toolsBox.style.top = (railTop + 4) + "px";
+
+      // Pot on the back burner, pan on the front burner
+      const stoveLeft = stoveTop.offsetLeft;
+      const stoveWidth = stoveTop.offsetWidth;
+      pot.style.left = (stoveLeft + 14) + "px";
+      pan.style.left = (stoveLeft + stoveWidth - 90 - 26) + "px";
+      pan.style.bottom = "14px";
+
+      // Bowl on the counter, on the left
+      kitchenStation.style.left = "12px";
+      kitchenStation.style.bottom = "12px";
+      mixBar.style.left = "17px";
+      mixBar.style.bottom = "4px";
+    }
 
     // ============================================================
     // HELPER FUNCTIONS
@@ -884,7 +1631,7 @@
       return list[Math.floor(Math.random() * list.length)];
     }
 
-    // Show a message. type is "good" (green) or "oops" (red).
+    // Show a message. type is "good" (green) or "oops" (orange).
     function showMessage(text, type) {
       message.textContent = text;
       message.className = "message " + (type || "");
@@ -897,26 +1644,17 @@
       element.classList.add(className);
     }
 
-    // Show only one thing on the counter: "bowl", "pan" or "plate"
-    function showOnCounter(which) {
-      bowl.classList.toggle("hidden", which !== "bowl");
-      pan.classList.toggle("hidden", which !== "pan");
-      plate.classList.toggle("hidden", which !== "plate");
-    }
-
     // Make an emoji fly in an arc from one thing on the page to another.
     // When it lands, the function "onLand" is run.
     function fly(emoji, fromElement, toElement, size, onLand) {
       const from = fromElement.getBoundingClientRect();
       const to = toElement.getBoundingClientRect();
 
-      // Start and end points (the middle of each element)
       const startX = from.left + from.width / 2;
       const startY = from.top + from.height / 2;
       const moveX = to.left + to.width / 2 - startX;
       const moveY = to.top + to.height / 2 - startY;
 
-      // Create the flying emoji
       const flyer = document.createElement("span");
       flyer.className = "flyer";
       flyer.textContent = emoji;
@@ -925,7 +1663,7 @@
       flyer.style.fontSize = size + "px";
       document.body.appendChild(flyer);
 
-      // Animate it: start -> up high in the middle -> land at the end
+      // Start -> up high in the middle -> land at the end
       const animation = flyer.animate([
         { transform: "translate(-50%, -50%) scale(1) rotate(0deg)" },
         { transform: "translate(calc(-50% + " + moveX / 2 + "px), calc(-50% + " + (moveY / 2 - 90) + "px)) scale(1.4) rotate(180deg)", offset: 0.5 },
@@ -953,7 +1691,8 @@
         ding:   [880, 1400, 0.3, "sine"],
         blorp:  [200, 60, 0.6, "sawtooth"],
         whoosh: [300, 900, 0.25, "triangle"],
-        pour:   [180, 420, 0.5, "sine"]
+        pour:   [180, 420, 0.5, "sine"],
+        click:  [1200, 800, 0.05, "square"]
       };
       const sound = sounds[kind];
 
@@ -980,14 +1719,157 @@
     }
 
     // ============================================================
-    // BUILDING THE PANTRY AND THE STEP BUTTONS
+    // THE BOWL
+    // There are two bowls on screen (one in the kitchen, one in the
+    // pantry), but they're really the same bowl you carry around.
+    // These functions keep both looking the same.
+    // ============================================================
+
+    // Draw the inside of a bowl (called once for each bowl)
+    function buildBowl(bowlElement) {
+      bowlElement.innerHTML =
+        '<div class="bowl-body"></div>' +
+        '<div class="bowl-rim"></div>' +
+        '<div class="bowl-contents"></div>' +
+        '<div class="bowl-items"></div>';
+    }
+
+    function allBowls() {
+      return document.querySelectorAll(".bowl");
+    }
+
+    // The bowl you can see right now (for animations to fly to)
+    function visibleBowl() {
+      const station = facing === "pantry" ? pantryStation : kitchenStation;
+      return station.querySelector(".bowl");
+    }
+
+    // Put emoji in both bowls
+    function setBowlItems(html) {
+      document.querySelectorAll(".bowl-items").forEach(function (items) {
+        items.innerHTML = html;
+        items.style.opacity = 1;
+      });
+    }
+
+    // Change the colour of what's inside both bowls
+    function setBowlContents(colour) {
+      document.querySelectorAll(".bowl-contents").forEach(function (contents) {
+        contents.style.background = colour;
+      });
+    }
+
+    // Turn sludge on or off in both bowls
+    function setSludge(on) {
+      allBowls().forEach(function (bowl) {
+        bowl.classList.toggle("sludgy", on);
+        bowl.querySelectorAll(".sludge-bubble").forEach(function (b) { b.remove(); });
+        if (on) {
+          // Three bubbles that keep rising out of the sludge
+          for (let i = 0; i < 3; i++) {
+            const sludgeBubble = document.createElement("span");
+            sludgeBubble.className = "sludge-bubble";
+            sludgeBubble.textContent = "🫧";
+            sludgeBubble.style.left = (22 + i * 34) + "px";
+            sludgeBubble.style.animationDelay = (i * 0.5) + "s";
+            bowl.appendChild(sludgeBubble);
+          }
+        }
+      });
+    }
+
+    // ============================================================
+    // THE RECIPE CARD
+    // Empty boxes that fill up as you go, so you know how many
+    // ingredients and steps are needed (but not which ones!).
+    // ============================================================
+
+    function updateRecipeCard() {
+      recipeTitle.textContent = currentDish.emoji + " " + currentDish.title;
+
+      let html = "";
+      for (let i = 0; i < currentDish.ingredients.length; i++) {
+        const name = addedIngredients[i];
+        if (name) {
+          const item = pantryItems.find(function (p) { return p.name === name; });
+          html += '<span class="slot filled">' + item.emoji + "</span>";
+        } else {
+          html += '<span class="slot"></span>';
+        }
+      }
+      ingredientSlots.innerHTML = html;
+      ingredientSlots.style.display = "flex";
+      ingredientSlots.style.gap = "4px";
+
+      html = "";
+      for (let i = 0; i < currentDish.steps.length; i++) {
+        if (i < stepsDone) {
+          html += '<span class="slot filled">' + stepEmoji[currentDish.steps[i]] + "</span>";
+        } else {
+          html += '<span class="slot"></span>';
+        }
+      }
+      stepSlots.innerHTML = html;
+      stepSlots.style.display = "flex";
+      stepSlots.style.gap = "4px";
+    }
+
+    // ============================================================
+    // TURNING AROUND (kitchen <-> pantry)
+    // ============================================================
+
+    // You can only turn around when you're not in the middle of something
+    function canTurn() {
+      return stage === "pick" || stage === "steps";
+    }
+
+    function turnAround() {
+      if (!canTurn()) return;
+      facing = facing === "kitchen" ? "pantry" : "kitchen";
+      room.classList.toggle("facing-pantry", facing === "pantry");
+      playAnimation(viewport, "turning");
+      turnButton.textContent = facing === "kitchen" ? "🔄 Pantry" : "🔄 Kitchen";
+      turnButton.classList.remove("pulse");
+
+      // Helpful message for where you've turned to
+      if (facing === "pantry" && stage === "pick") {
+        showMessage("Tap the jars to put ingredients in your bowl", "");
+      } else if (facing === "kitchen" && stage === "steps") {
+        showMessage("Now cook! Use the right things in the right order 👩‍🍳", "");
+      } else if (facing === "kitchen" && stage === "pick") {
+        showMessage("Your bowl needs ingredients from the pantry 🔄", "");
+      }
+    }
+
+    turnButton.addEventListener("click", turnAround);
+
+    // You can also swipe left/right to turn around
+    let swipeStart = null;
+    viewport.addEventListener("touchstart", function (event) {
+      // Don't count stirring as a swipe
+      if (event.target.closest(".station")) return;
+      swipeStart = { x: event.touches[0].clientX, y: event.touches[0].clientY };
+    });
+    viewport.addEventListener("touchend", function (event) {
+      if (!swipeStart) return;
+      const moveX = event.changedTouches[0].clientX - swipeStart.x;
+      const moveY = event.changedTouches[0].clientY - swipeStart.y;
+      swipeStart = null;
+      // A clear sideways swipe of at least 60 pixels
+      if (Math.abs(moveX) > 60 && Math.abs(moveX) > Math.abs(moveY)) {
+        if (moveX < 0 && facing === "kitchen") turnAround();
+        if (moveX > 0 && facing === "pantry") turnAround();
+      }
+    });
+
+    // ============================================================
+    // BUILDING THE PANTRY AND THE TOOLS
     // ============================================================
 
     // Make one glass jar for the pantry shelf
     function makeJar(item) {
       const jar = document.createElement("button");
       jar.className = "jar-wrap";
-      // Tell the CSS which colours to use for this jar's food and lid
       jar.style.setProperty("--fill", item.fill);
       jar.style.setProperty("--lid", randomFrom(lidColours));
       jar.innerHTML =
@@ -1006,9 +1888,8 @@
 
     // Fill the pantry with shelves of jars, in a random order
     function buildPantry() {
-      pantryGrid.innerHTML = "";
+      shelves.innerHTML = "";
       const jars = shuffle(pantryItems);
-      // Take the jars 4 at a time and put each group on its own shelf
       for (let i = 0; i < jars.length; i += jarsPerShelf) {
         const shelf = document.createElement("div");
         shelf.className = "shelf";
@@ -1021,87 +1902,82 @@
         plank.className = "plank";
         shelf.appendChild(row);
         shelf.appendChild(plank);
-        pantryGrid.appendChild(shelf);
+        shelves.appendChild(shelf);
       }
     }
 
-    // Turn all the jars on or off at once
     function setJarsEnabled(enabled) {
-      pantryGrid.querySelectorAll("button").forEach(function (jar) {
+      shelves.querySelectorAll("button").forEach(function (jar) {
         jar.disabled = !enabled;
       });
     }
 
-    // Make the cooking step buttons, in a random order
-    function buildSteps() {
-      stepsGrid.innerHTML = "";
-      shuffle(cookingSteps).forEach(function (item) {
+    // Hang the tools on the rail, in a random order
+    function buildTools() {
+      toolsBox.innerHTML = "";
+      shuffle(railTools).forEach(function (tool) {
         const button = document.createElement("button");
-        button.className = "big-button step-button";
-        button.innerHTML = '<span class="emoji">' + item.emoji + "</span>" + item.name;
+        button.className = "tool";
+        button.innerHTML =
+          '<span class="hook"></span>' +
+          '<span class="tool-emoji">' + tool.emoji + "</span>" +
+          '<span class="tag">' + tool.name + "</span>";
         button.addEventListener("click", function () {
-          tapStep(item, button);
+          tapStep(tool.name, button);
         });
-        stepsGrid.appendChild(button);
+        toolsBox.appendChild(button);
       });
     }
 
     // ============================================================
-    // STAGE 1: PICKING INGREDIENTS
+    // STAGE 1: PICKING INGREDIENTS (in the pantry)
     // ============================================================
 
     function tapIngredient(item, jar) {
-      // Ignore taps while something else is happening
       if (stage !== "pick") return;
       stage = "busy";
 
       // Lift the jar off the shelf, and send the ingredient flying to the bowl
       jar.classList.add("lifted");
-      fly(item.emoji, jar.querySelector(".emoji"), bowlItems, 30, function () {
+      const bowl = visibleBowl();
+      fly(item.emoji, jar.querySelector(".emoji"), bowl.querySelector(".bowl-items"), 28, function () {
         jar.classList.remove("lifted");
 
-        // Is this ingredient part of the recipe?
         if (currentDish.ingredients.includes(item.name)) {
-          // Yes! It lands in the bowl.
+          // Right ingredient: it lands in the bowl
           addedIngredients.push(item.name);
-          bowlItems.innerHTML += "<span>" + item.emoji + "</span>";
-          bowlContents.style.background = "#fffaf0";   // a little milky liquid
+          setBowlItems(addedIngredients.map(function (name) {
+            return "<span>" + pantryItems.find(function (p) { return p.name === name; }).emoji + "</span>";
+          }).join(""));
+          setBowlContents("#fffaf0");
           jar.disabled = true;
           playAnimation(bowl, "jiggle");
           playSound("plop");
+          updateRecipeCard();
 
-          // Got everything? Move on to cooking.
           if (addedIngredients.length === currentDish.ingredients.length) {
-            goToSteps();
+            // Got everything!
+            stage = "steps";
+            showMessage("All in! Turn around to the kitchen to cook 🔄", "good");
+            turnButton.classList.add("pulse");
           } else {
             showMessage("Yum, " + item.name.toLowerCase() + "! 👍", "good");
             stage = "pick";
           }
         } else {
-          // No, it's a distractor. It goes in the bowl... and ruins everything!
+          // Wrong ingredient: it ruins everything!
           makeSludge(item);
         }
       });
     }
 
-    // A wrong ingredient turns the whole bowl into sludge
+    // A wrong ingredient turns the bowl into sludge
     function makeSludge(item) {
       stage = "sludge";
-      bowlItems.innerHTML = "<span>🤢</span>";
-      bowlContents.style.background = "var(--sludge)";
-      station.classList.add("sludge");
-      playAnimation(bowl, "jiggle");
+      setBowlItems("<span>🤢</span>");
+      setBowlContents("var(--sludge)");
+      setSludge(true);
       playSound("blorp");
-
-      // Add three bubbles that keep rising out of the sludge
-      for (let i = 0; i < 3; i++) {
-        const sludgeBubble = document.createElement("span");
-        sludgeBubble.className = "sludge-bubble";
-        sludgeBubble.textContent = "🫧";
-        sludgeBubble.style.left = (25 + i * 35) + "px";
-        sludgeBubble.style.animationDelay = (i * 0.5) + "s";
-        bowl.appendChild(sludgeBubble);
-      }
 
       customerFace.textContent = "😖";
       bubble.textContent = "Eww! That's not " + currentDish.name + "!";
@@ -1109,123 +1985,128 @@
 
       // No more ingredients until the bowl is clean
       setJarsEnabled(false);
+      turnButton.classList.add("hidden");
       washButton.classList.remove("hidden");
     }
 
     // Empty the bowl and start picking ingredients again (same customer)
     function washBowl() {
       addedIngredients = [];
-      bowlItems.innerHTML = "";
-      bowlItems.style.opacity = 1;
-      bowlContents.style.background = "transparent";
-      station.classList.remove("sludge");
-      bowl.querySelectorAll(".sludge-bubble").forEach(function (b) { b.remove(); });
-      showOnCounter("bowl");
+      setBowlItems("");
+      setBowlContents("transparent");
+      setSludge(false);
+      updateRecipeCard();
 
       customerFace.textContent = currentFace;
-      customerFace.classList.remove("bounce");
       bubble.textContent = "I'd like " + currentDish.name + ", please! " + currentDish.emoji;
-      showMessage("Tap the jars to put ingredients in the bowl", "");
+      showMessage("All clean! Tap the jars to try again", "");
 
       setJarsEnabled(true);
       washButton.classList.add("hidden");
+      turnButton.classList.remove("hidden");
       stage = "pick";
     }
 
     // ============================================================
-    // STAGE 2: COOKING STEPS IN ORDER
+    // STAGE 2: COOKING (in the kitchen)
+    // The steps are real things: the spoon on the rail (Mix),
+    // the knob on the oven (Cook), and a knife to trick you (Chop).
     // ============================================================
 
-    // All ingredients are in: swap the pantry for the cooking step buttons
-    function goToSteps() {
-      showMessage("All in! Now tap the cooking steps in order 👩‍🍳", "good");
-      pantrySection.classList.add("hidden");
-      stepsSection.classList.remove("hidden");
-      window.scrollTo({ top: 0, behavior: "smooth" });
-      stage = "steps";
-    }
-
-    function tapStep(item, button) {
+    function tapStep(name, element) {
+      // Not got the ingredients yet?
+      if (stage === "pick") {
+        showMessage("First get the ingredients from the pantry! 🔄", "oops");
+        playAnimation(element, "shake");
+        return;
+      }
       if (stage !== "steps") return;
 
-      // Which step should come next?
       const nextStep = currentDish.steps[stepsDone];
 
-      if (item.name !== nextStep) {
-        // Wrong step: a friendly nudge, then they can try again
-        showMessage("Hmm, not " + item.name.toLowerCase() + " right now. What comes next? 🤔", "oops");
+      if (name !== nextStep) {
+        // Wrong step: a friendly nudge
+        if (currentDish.steps.includes(name)) {
+          showMessage("Hmm, not yet! What do we do first? 🤔", "oops");
+        } else {
+          showMessage("No " + name.toLowerCase() + "ping needed for " + currentDish.name + "! 😊", "oops");
+        }
+        playAnimation(element, "shake");
         return;
       }
 
-      // Right step! Grey out the button and do the action.
-      button.disabled = true;
-      stepsSection.classList.add("hidden");
-      if (item.name === "Mix") startStirring();
-      if (item.name === "Cook") startCooking();
+      // Right step!
+      if (name === "Mix") {
+        element.classList.add("used");   // spoon taken off the rail
+        startStirring();
+      }
+      if (name === "Cook") {
+        startCooking();
+      }
     }
 
-    // Called when a step's action is finished
+    cookKnob.addEventListener("click", function () {
+      tapStep("Cook", cookKnob);
+    });
+
+    // Called when a step is finished
     function stepDone() {
       stepsDone++;
+      updateRecipeCard();
       if (stepsDone === currentDish.steps.length) {
         serveDish();
       } else {
-        stepsSection.classList.remove("hidden");
         stage = "steps";
       }
     }
 
-    // ----- MIX: the player stirs the bowl with their finger -----
+    // ----- MIX: stir the bowl with your finger -----
 
     function startStirring() {
       stage = "stirring";
       stirDistance = 0;
       mixFill.style.width = "0%";
       mixBar.classList.remove("hidden");
-      bowl.classList.add("hint");
+      kitchenStation.classList.add("hint");
       showMessage("Stir! Swirl your finger round and round the bowl 🥄", "good");
     }
 
-    // Finger touches the bowl
-    station.addEventListener("pointerdown", function (event) {
+    kitchenStation.addEventListener("pointerdown", function (event) {
       if (stage !== "stirring") return;
       lastPoint = { x: event.clientX, y: event.clientY };
       spoon.classList.remove("hidden");
       moveSpoon(event);
-      bowlItems.classList.add("swirl");
-      bowl.classList.remove("hint");
+      kitchenStation.querySelector(".bowl-items").classList.add("swirl");
+      kitchenStation.classList.remove("hint");
     });
 
-    // Finger moves: add up how far it has travelled
-    station.addEventListener("pointermove", function (event) {
+    kitchenStation.addEventListener("pointermove", function (event) {
       if (stage !== "stirring" || !lastPoint) return;
       const moved = Math.hypot(event.clientX - lastPoint.x, event.clientY - lastPoint.y);
       lastPoint = { x: event.clientX, y: event.clientY };
       stirDistance += moved;
       moveSpoon(event);
 
-      // Show progress: bar fills up, batter appears, lumpy bits fade away
+      // Bar fills up, batter appears, lumpy bits fade away
       const progress = Math.min(stirDistance / stirTarget, 1);
       mixFill.style.width = (progress * 100) + "%";
-      bowlItems.style.opacity = 1 - progress;
-      if (progress > 0.3) bowlContents.style.background = "var(--batter)";
+      kitchenStation.querySelector(".bowl-items").style.opacity = 1 - progress;
+      if (progress > 0.3) setBowlContents("var(--batter)");
 
       if (progress >= 1) finishStirring();
     });
 
-    // Finger lifts off
     function stopStirring() {
       lastPoint = null;
       spoon.classList.add("hidden");
-      bowlItems.classList.remove("swirl");
+      kitchenStation.querySelector(".bowl-items").classList.remove("swirl");
     }
-    station.addEventListener("pointerup", stopStirring);
-    station.addEventListener("pointercancel", stopStirring);
-    station.addEventListener("pointerleave", stopStirring);
+    kitchenStation.addEventListener("pointerup", stopStirring);
+    kitchenStation.addEventListener("pointercancel", stopStirring);
+    kitchenStation.addEventListener("pointerleave", stopStirring);
 
-    // Put the spoon where the finger is
     function moveSpoon(event) {
-      const box = station.getBoundingClientRect();
+      const box = kitchenStation.getBoundingClientRect();
       spoon.style.left = (event.clientX - box.left) + "px";
       spoon.style.top = (event.clientY - box.top) + "px";
     }
@@ -1233,23 +2114,27 @@
     function finishStirring() {
       stopStirring();
       stage = "busy";
-      bowlItems.innerHTML = "";
+      setBowlItems("");
       mixBar.classList.add("hidden");
       playSound("ding");
       showMessage("Lovely smooth batter! What's next? 👍", "good");
       stepDone();
     }
 
-    // ----- COOK: pour into the pan, wait till golden, then flip -----
+    // ----- COOK: turn the knob, pour, wait till golden, flip -----
 
     function startCooking() {
       stage = "cooking";
-      showOnCounter("pan");
-      pancake.className = "pancake";   // reset the pancake
+      cookKnob.classList.add("on");
+      flames.classList.remove("hidden");
+      playSound("click");
+
+      // Batter goes from the bowl into the pan
+      setBowlContents("transparent");
+      pancake.className = "pancake";
       showMessage("Pouring the batter... 🔥", "good");
       playSound("pour");
 
-      // Pour (the pancake grows), then start cooking (sizzles, turns golden)
       setTimeout(function () { pancake.classList.add("poured"); }, 50);
       setTimeout(function () {
         pancake.classList.add("cooking");
@@ -1264,7 +2149,6 @@
       }, 3400);
     }
 
-    // Tap the pan to flip the pancake
     pan.addEventListener("click", function () {
       if (stage !== "flip") return;
       stage = "busy";
@@ -1273,11 +2157,15 @@
       playSound("whoosh");
     });
 
-    // When the flip animation finishes, cooking is done
+    // When the flip finishes: gas off, pancake onto the plate
     pancake.addEventListener("animationend", function (event) {
-      if (event.animationName === "flip") {
+      if (event.animationName !== "flip") return;
+      cookKnob.classList.remove("on");
+      flames.classList.add("hidden");
+      fly(currentDish.emoji, pan, kitchenStation, 40, function () {
+        pancake.className = "pancake";
         stepDone();
-      }
+      });
     });
 
     // ============================================================
@@ -1286,10 +2174,11 @@
 
     function serveDish() {
       stage = "served";
+      kitchenStation.querySelector(".bowl").classList.add("hidden");
       plateFood.textContent = currentDish.emoji;
-      showOnCounter("plate");
+      plate.classList.remove("hidden");
 
-      customerFace.textContent = "😄";   // happy customer!
+      customerFace.textContent = "😄";
       customerFace.classList.add("bounce");
       bubble.textContent = "Delicious! Thank you! 💖";
       showMessage("+" + coinsPerDish + " coins! 🪙", "good");
@@ -1298,10 +2187,9 @@
       // Three coins fly from the plate to the coin counter
       for (let i = 0; i < 3; i++) {
         setTimeout(function () {
-          fly("🪙", plateFood, coinsBox, 28, function () {
+          fly("🪙", plateFood, coinsBox, 26, function () {
             playAnimation(coinsBox, "pop");
             playSound("plop");
-            // When the last coin lands, add the coins to the total
             if (i === 2) {
               coins += coinsPerDish;
               coinsText.textContent = coins;
@@ -1310,6 +2198,7 @@
         }, i * 200);
       }
 
+      turnButton.classList.add("hidden");
       nextButton.classList.remove("hidden");
     }
 
@@ -1322,19 +2211,38 @@
       currentFace = randomFrom(customerFaces);
 
       buildPantry();
-      buildSteps();
-      washBowl();   // clean bowl, customer places their order
+      buildTools();
+      washBowl();
 
-      pantrySection.classList.remove("hidden");
-      stepsSection.classList.add("hidden");
+      // Plate away, bowl back
+      plate.classList.add("hidden");
+      kitchenStation.querySelector(".bowl").classList.remove("hidden");
+
+      // New customer pops up in the hatch
+      customerFace.classList.remove("bounce");
+      playAnimation(customerFace, "arrive");
+
+      showMessage("A customer! Turn around to the pantry for ingredients 🔄", "");
       nextButton.classList.add("hidden");
+      turnButton.classList.remove("hidden");
+      turnButton.classList.add("pulse");
     }
 
-    // Button taps
     nextButton.addEventListener("click", newCustomer);
     washButton.addEventListener("click", washBowl);
 
-    // Start the very first round when the page loads
+    // When the customer's arrive animation ends, go back to gentle bobbing
+    customerFace.addEventListener("animationend", function (event) {
+      if (event.animationName === "arrive") customerFace.classList.remove("arrive");
+    });
+
+    // ============================================================
+    // START THE GAME
+    // ============================================================
+
+    allBowls().forEach(buildBowl);
+    layoutKitchen();
+    window.addEventListener("resize", layoutKitchen);
     newCustomer();
   </script>
 </body>
