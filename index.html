@@ -550,6 +550,12 @@
       animation: flicker 0.25s ease-in-out infinite alternate;
     }
 
+    /* Flames under the pot on the back burner */
+    .flames.back {
+      right: auto;
+      left: 10%;
+    }
+
     .flame:nth-child(2) { animation-delay: 0.1s; }
     .flame:nth-child(3) { animation-delay: 0.05s; }
 
@@ -611,6 +617,51 @@
       0% { transform: translateY(0) scale(0.6); opacity: 0; }
       30% { opacity: 0.9; }
       100% { transform: translateY(-40px) scale(1.5); opacity: 0; }
+    }
+
+    /* Boiling: the pot rattles and steams much faster */
+    .pot.boiling {
+      animation: rattle 0.15s linear infinite;
+    }
+
+    .pot.boiling .steam {
+      animation-duration: 0.8s;
+    }
+
+    @keyframes rattle {
+      50% { transform: translateY(-1px) rotate(1deg); }
+    }
+
+    /* Little white tags on the pot and oven ("Boil", "Bake") */
+    .appliance-tag {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      border: 2px solid var(--ink);
+      border-radius: 6px;
+      padding: 0 5px;
+      font-size: 10px;
+      font-weight: 800;
+      color: var(--text);
+      white-space: nowrap;
+    }
+
+    /* The knife that appears where you tap when chopping */
+    .chop-knife {
+      position: absolute;
+      font-size: 34px;
+      line-height: 1;
+      pointer-events: none;
+      z-index: 6;
+      animation: chop 0.25s ease-out forwards;
+    }
+
+    @keyframes chop {
+      0% { transform: translate(-50%, -110%) rotate(-40deg); }
+      60% { transform: translate(-50%, -60%) rotate(0deg); opacity: 1; }
+      100% { transform: translate(-50%, -60%) rotate(0deg); opacity: 0; }
     }
 
     /* --- Cupboards and oven along the bottom --- */
@@ -750,10 +801,18 @@
     }
 
     .oven-glass {
+      position: relative;
       height: 100%;
       border-radius: 6px;
       background: linear-gradient(135deg, #4a4545, #2e2a2a);
       border: 2px solid var(--ink);
+      transition: background 0.6s, box-shadow 0.6s;
+    }
+
+    /* Baking: the oven glows warm orange inside */
+    .oven-glass.baking {
+      background: radial-gradient(ellipse, #ffc46b, #e8590c);
+      box-shadow: 0 0 14px #ffa94d;
     }
 
     /* ============================================================
@@ -1073,8 +1132,8 @@
 
     .jar-row {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 7px;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 5px;
       align-items: end;
       padding: 0 2px;
       perspective: 400px;
@@ -1168,20 +1227,20 @@
       background: white;
       border: 2px solid var(--ink);
       border-radius: 6px;
-      padding: 1px 2px;
+      padding: 1px 1px;
       display: flex;
       flex-direction: column;
       align-items: center;
-      min-width: 78%;
+      min-width: 86%;
     }
 
     .label .emoji {
-      font-size: 18px;
+      font-size: 17px;
       line-height: 1.1;
     }
 
     .label .name {
-      font-size: 9.5px;
+      font-size: 8.5px;
       font-weight: 800;
     }
 
@@ -1351,7 +1410,7 @@
             <!-- Cooker hood over the stove, and a shelf of pretty things -->
             <div class="hood"></div>
             <div class="wall-shelf">
-              <div class="wall-shelf-items"><span>🫖</span><span style="font-size: 22px;">🍯</span><span style="font-size: 20px;">🧂</span></div>
+              <div class="wall-shelf-items"><span>🫖</span><span style="font-size: 22px;">🏺</span><span style="font-size: 20px;">🧂</span></div>
               <div class="wall-shelf-plank"></div>
             </div>
 
@@ -1381,11 +1440,16 @@
               <div class="flames hidden" id="flames">
                 <span class="flame"></span><span class="flame"></span><span class="flame"></span>
               </div>
+              <div class="flames back hidden" id="flames-back">
+                <span class="flame"></span><span class="flame"></span><span class="flame"></span>
+              </div>
             </div>
+            <!-- The pot: tap it to Boil -->
             <div class="pot" id="pot">
-              <span class="steam" style="left: 10px;"></span>
-              <span class="steam" style="left: 30px; animation-delay: 0.8s;"></span>
-              <span class="steam" style="left: 20px; animation-delay: 1.6s;"></span>
+              <span class="steam" style="left: 6px;"></span>
+              <span class="steam" style="left: 26px; animation-delay: 0.8s;"></span>
+              <span class="steam" style="left: 16px; animation-delay: 1.6s;"></span>
+              <span class="appliance-tag">Boil</span>
             </div>
             <div class="pan" id="pan">
               <div class="pancake" id="pancake"></div>
@@ -1415,7 +1479,10 @@
                 <button class="cook-knob" id="cook-knob"><span class="dial"></span>Cook</button>
                 <span class="knob"></span>
               </div>
-              <div class="oven-door"><div class="oven-glass"></div></div>
+              <!-- The oven door: tap it to Bake -->
+              <div class="oven-door" id="oven-door">
+                <div class="oven-glass" id="oven-glass"><span class="appliance-tag">Bake</span></div>
+              </div>
             </div>
           </div>
         </div>
@@ -1438,7 +1505,7 @@
 
           <!-- Fruit basket and your bowl -->
           <div class="pantry-floor">
-            <div class="basket"><div class="basket-fruit">🍎🍊🍌🍐</div></div>
+            <div class="basket"><div class="basket-fruit">🍊🍌🍐🍇</div></div>
             <div class="board"></div>
             <div class="station" id="pantry-station" style="right: 18px; bottom: 12px;">
               <div class="bowl"></div>
@@ -1465,51 +1532,91 @@
     // to change later (e.g. to add more dishes).
     // ============================================================
 
-    // The one dish in Version 1
-    const pancakes = {
-      name: "pancakes",
-      title: "Pancakes",
-      emoji: "🥞",
-      ingredients: ["Flour", "Eggs", "Milk"],   // what's needed (any order)
-      steps: ["Mix", "Cook"]                    // what to do (this order!)
-    };
+    // All the dishes customers can order.
+    // - name: used in sentences ("I'd like pancakes")
+    // - title: short name for the recipe card
+    // - ingredients: what's needed from the pantry (any order)
+    // - steps: what to do in the kitchen (this order!)
+    // - colour: what the food in the bowl looks like once mixed or chopped
+    const dishes = [
+      {
+        name: "pancakes", title: "Pancakes", emoji: "🥞",
+        ingredients: ["Flour", "Eggs", "Milk"],
+        steps: ["Mix", "Cook"],
+        colour: "#f6e3b4"
+      },
+      {
+        name: "pasta with tomato sauce", title: "Pasta", emoji: "🍝",
+        ingredients: ["Pasta", "Tomato", "Garlic"],
+        steps: ["Chop", "Boil"],
+        colour: "#e4572e"
+      },
+      {
+        name: "a salad", title: "Salad", emoji: "🥗",
+        ingredients: ["Lettuce", "Tomato", "Cucumber"],
+        steps: ["Chop", "Mix"],
+        colour: "#8fce7c"
+      },
+      {
+        name: "a pie", title: "Pie", emoji: "🥧",
+        ingredients: ["Flour", "Butter", "Apple"],
+        steps: ["Mix", "Bake"],
+        colour: "#f3dcb0"
+      },
+      {
+        name: "a cup of tea", title: "Tea", emoji: "🍵",
+        ingredients: ["Tea", "Honey"],
+        steps: ["Boil"],
+        colour: "#c58b4c"
+      }
+    ];
 
-    // Everything in the pantry. Some are right, most are distractors.
-    // "fill" is the colour of the food you can see inside the jar.
+    // Everything in the pantry. Each dish needs some of these;
+    // the rest are distractors. "fill" is the colour of the food in the jar.
     const pantryItems = [
       { name: "Flour",    emoji: "🌾", fill: "#f3ead8" },
       { name: "Eggs",     emoji: "🥚", fill: "#f6e2c3" },
       { name: "Milk",     emoji: "🥛", fill: "#ffffff" },
+      { name: "Pasta",    emoji: "🍝", fill: "#f5d78e" },
       { name: "Tomato",   emoji: "🍅", fill: "#f28b82" },
+      { name: "Garlic",   emoji: "🧄", fill: "#efe6d8" },
+      { name: "Lettuce",  emoji: "🥬", fill: "#a8d98a" },
+      { name: "Cucumber", emoji: "🥒", fill: "#7cbf6a" },
+      { name: "Butter",   emoji: "🧈", fill: "#fbe58c" },
+      { name: "Apple",    emoji: "🍎", fill: "#ef7d6d" },
+      { name: "Tea",      emoji: "🍃", fill: "#8c9a5b" },
+      { name: "Honey",    emoji: "🍯", fill: "#f2b33d" },
       { name: "Fish",     emoji: "🐟", fill: "#a7d3f0" },
       { name: "Onion",    emoji: "🧅", fill: "#e9c9a3" },
       { name: "Cheese",   emoji: "🧀", fill: "#ffd966" },
       { name: "Carrot",   emoji: "🥕", fill: "#ffb26b" },
-      { name: "Rice",     emoji: "🍚", fill: "#f7f7f2" },
-      { name: "Garlic",   emoji: "🧄", fill: "#efe6d8" },
       { name: "Chilli",   emoji: "🌶️", fill: "#e85d4a" },
       { name: "Mushroom", emoji: "🍄", fill: "#d9b99b" },
       { name: "Potato",   emoji: "🥔", fill: "#d8b07a" },
-      { name: "Broccoli", emoji: "🥦", fill: "#8fce7c" },
-      { name: "Lemon",    emoji: "🍋", fill: "#fff176" },
-      { name: "Peas",     emoji: "🫛", fill: "#9ccc65" }
+      { name: "Lemon",    emoji: "🍋", fill: "#fff176" }
     ];
 
     // Lid colours for the jars (picked at random for each jar)
     const lidColours = ["#2a9d8f", "#dca56e", "#e9c46a", "#e9735b", "#92b4d4"];
 
     // How many jars fit on one shelf
-    const jarsPerShelf = 4;
+    const jarsPerShelf = 5;
 
-    // Tools hanging on the kitchen rail. Some are steps, some are distractors.
-    // ("Cook" isn't here: you cook by turning the knob on the oven.)
+    // Tools hanging on the kitchen rail.
+    // (The other steps are on the stove: Cook = knob, Boil = pot, Bake = oven door.)
     const railTools = [
       { name: "Mix",  emoji: "🥄" },
       { name: "Chop", emoji: "🔪" }
     ];
 
     // Emoji shown on the recipe card when a step is done
-    const stepEmoji = { Mix: "🥄", Cook: "🍳" };
+    const stepEmoji = { Mix: "🥄", Chop: "🔪", Cook: "🍳", Boil: "♨️", Bake: "🔥" };
+
+    // Words for friendly messages ("No chopping needed!")
+    const stepWords = { Mix: "mixing", Chop: "chopping", Cook: "frying", Boil: "boiling", Bake: "baking" };
+
+    // How many taps it takes to chop everything
+    const chopTarget = 8;
 
     // Different faces so each customer feels new
     const customerFaces = ["🧒", "👧", "👦", "👩", "👨", "👵", "👴", "🧑‍🦰"];
@@ -1528,19 +1635,22 @@
     let coins = 0;
     let addedIngredients = [];   // ingredients put in the bowl so far
     let stepsDone = 0;           // how many cooking steps finished so far
-    let currentDish = pancakes;
+    let currentDish = null;      // the dish being made (picked when a customer arrives)
     let currentFace = "🧒";      // the face of the customer being served
     let facing = "kitchen";      // which way you're looking: "kitchen" or "pantry"
 
     // What's happening right now. This stops taps doing the wrong thing.
     // "pick" = choosing ingredients, "busy" = an animation is playing,
-    // "steps" = time to cook, "stirring", "cooking", "flip",
+    // "steps" = time to cook, "stirring", "chopping", "cooking", "flip",
     // "sludge", "served"
     let stage = "pick";
 
     // For stirring: how far the finger has moved, and where it was last
     let stirDistance = 0;
     let lastPoint = null;
+
+    // For chopping: how many chops so far
+    let chopCount = 0;
 
     // ============================================================
     // GRAB THE PARTS OF THE PAGE WE NEED TO CHANGE
@@ -1567,7 +1677,11 @@
     const pan = document.getElementById("pan");
     const pancake = document.getElementById("pancake");
     const flames = document.getElementById("flames");
+    const flamesBack = document.getElementById("flames-back");
     const cookKnob = document.getElementById("cook-knob");
+    const pot = document.getElementById("pot");
+    const ovenDoor = document.getElementById("oven-door");
+    const ovenGlass = document.getElementById("oven-glass");
     const shelves = document.getElementById("shelves");
     const turnButton = document.getElementById("turn-button");
     const washButton = document.getElementById("wash-button");
@@ -1585,7 +1699,6 @@
       const plant = document.getElementById("plant");
       const rail = document.getElementById("rail");
       const stoveTop = document.getElementById("stove-top");
-      const pot = document.getElementById("pot");
 
       // Sill sits just under the hatch, plant sits on the sill
       const hatchBottom = hatch.offsetTop + hatch.offsetHeight;
@@ -1629,6 +1742,12 @@
     // Pick one random thing from a list
     function randomFrom(list) {
       return list[Math.floor(Math.random() * list.length)];
+    }
+
+    // Change what the customer says (and move the rail if the bubble changes size)
+    function setBubble(text) {
+      bubble.textContent = text;
+      layoutKitchen();
     }
 
     // Show a message. type is "good" (green) or "oops" (orange).
@@ -1692,7 +1811,8 @@
         blorp:  [200, 60, 0.6, "sawtooth"],
         whoosh: [300, 900, 0.25, "triangle"],
         pour:   [180, 420, 0.5, "sine"],
-        click:  [1200, 800, 0.05, "square"]
+        click:  [1200, 800, 0.05, "square"],
+        chop:   [900, 300, 0.07, "square"]
       };
       const sound = sounds[kind];
 
@@ -1980,7 +2100,7 @@
       playSound("blorp");
 
       customerFace.textContent = "😖";
-      bubble.textContent = "Eww! That's not " + currentDish.name + "!";
+      setBubble("Eww! That's not " + currentDish.name + "!");
       showMessage("Oh no, the " + item.name.toLowerCase() + " turned it into sludge! 🤢", "oops");
 
       // No more ingredients until the bowl is clean
@@ -1998,7 +2118,7 @@
       updateRecipeCard();
 
       customerFace.textContent = currentFace;
-      bubble.textContent = "I'd like " + currentDish.name + ", please! " + currentDish.emoji;
+      setBubble("I'd like " + currentDish.name + ", please! " + currentDish.emoji);
       showMessage("All clean! Tap the jars to try again", "");
 
       setJarsEnabled(true);
@@ -2009,8 +2129,10 @@
 
     // ============================================================
     // STAGE 2: COOKING (in the kitchen)
-    // The steps are real things: the spoon on the rail (Mix),
-    // the knob on the oven (Cook), and a knife to trick you (Chop).
+    // The steps are real things in the kitchen:
+    //   Mix  = the spoon on the rail     Chop = the knife on the rail
+    //   Cook = the red knob (frying pan) Boil = the pot
+    //   Bake = the oven door
     // ============================================================
 
     function tapStep(name, element) {
@@ -2029,34 +2151,84 @@
         if (currentDish.steps.includes(name)) {
           showMessage("Hmm, not yet! What do we do first? 🤔", "oops");
         } else {
-          showMessage("No " + name.toLowerCase() + "ping needed for " + currentDish.name + "! 😊", "oops");
+          showMessage("No " + stepWords[name] + " needed for " + currentDish.name + "! 😊", "oops");
         }
         playAnimation(element, "shake");
         return;
       }
 
-      // Right step!
-      if (name === "Mix") {
-        element.classList.add("used");   // spoon taken off the rail
-        startStirring();
+      // Right step! Tools on the rail get taken down.
+      if (element.classList.contains("tool")) {
+        element.classList.add("used");
       }
-      if (name === "Cook") {
-        startCooking();
-      }
+      if (name === "Mix") startStirring();
+      if (name === "Chop") startChopping();
+      if (name === "Cook") startCooking();
+      if (name === "Boil") startBoiling();
+      if (name === "Bake") startBaking();
     }
 
-    cookKnob.addEventListener("click", function () {
-      tapStep("Cook", cookKnob);
-    });
+    // The stove and oven are steps too
+    cookKnob.addEventListener("click", function () { tapStep("Cook", cookKnob); });
+    pot.addEventListener("click", function () { tapStep("Boil", pot); });
+    ovenDoor.addEventListener("click", function () { tapStep("Bake", ovenDoor); });
 
-    // Called when a step is finished
-    function stepDone() {
+    // Called when a step is finished. "source" is where the food is now
+    // (bowl, pan, pot or oven), so the finished dish can fly from there.
+    function stepDone(source) {
       stepsDone++;
       updateRecipeCard();
       if (stepsDone === currentDish.steps.length) {
-        serveDish();
+        serveDish(source);
       } else {
         stage = "steps";
+      }
+    }
+
+    // ----- CHOP: tap the bowl lots of times -----
+
+    function startChopping() {
+      stage = "chopping";
+      chopCount = 0;
+      mixFill.style.width = "0%";
+      mixBar.classList.remove("hidden");
+      kitchenStation.classList.add("hint");
+      showMessage("Chop chop! Tap the bowl lots of times 🔪", "good");
+    }
+
+    // One chop: a knife swings down where you tapped
+    function chop(event) {
+      chopCount++;
+      kitchenStation.classList.remove("hint");
+      playSound("chop");
+
+      const box = kitchenStation.getBoundingClientRect();
+      const knife = document.createElement("span");
+      knife.className = "chop-knife";
+      knife.textContent = "🔪";
+      knife.style.left = (event.clientX - box.left) + "px";
+      knife.style.top = (event.clientY - box.top) + "px";
+      kitchenStation.appendChild(knife);
+      setTimeout(function () { knife.remove(); }, 300);
+
+      // Food gets chopped smaller and smaller
+      const progress = Math.min(chopCount / chopTarget, 1);
+      mixFill.style.width = (progress * 100) + "%";
+      kitchenStation.querySelectorAll(".bowl-items span").forEach(function (item) {
+        item.style.transform = "scale(" + (1 - progress * 0.6) + ")";
+      });
+      playAnimation(kitchenStation.querySelector(".bowl"), "jiggle");
+
+      if (chopCount >= chopTarget) {
+        stage = "busy";
+        setTimeout(function () {
+          setBowlItems("");
+          setBowlContents(currentDish.colour);   // nicely chopped!
+          mixBar.classList.add("hidden");
+          playSound("ding");
+          showMessage("All chopped! What's next? 👍", "good");
+          stepDone(kitchenStation);
+        }, 300);
       }
     }
 
@@ -2072,6 +2244,10 @@
     }
 
     kitchenStation.addEventListener("pointerdown", function (event) {
+      if (stage === "chopping") {
+        chop(event);
+        return;
+      }
       if (stage !== "stirring") return;
       lastPoint = { x: event.clientX, y: event.clientY };
       spoon.classList.remove("hidden");
@@ -2091,7 +2267,7 @@
       const progress = Math.min(stirDistance / stirTarget, 1);
       mixFill.style.width = (progress * 100) + "%";
       kitchenStation.querySelector(".bowl-items").style.opacity = 1 - progress;
-      if (progress > 0.3) setBowlContents("var(--batter)");
+      if (progress > 0.3) setBowlContents(currentDish.colour);
 
       if (progress >= 1) finishStirring();
     });
@@ -2117,8 +2293,8 @@
       setBowlItems("");
       mixBar.classList.add("hidden");
       playSound("ding");
-      showMessage("Lovely smooth batter! What's next? 👍", "good");
-      stepDone();
+      showMessage("All mixed! What's next? 👍", "good");
+      stepDone(kitchenStation);
     }
 
     // ----- COOK: turn the knob, pour, wait till golden, flip -----
@@ -2157,30 +2333,94 @@
       playSound("whoosh");
     });
 
-    // When the flip finishes: gas off, pancake onto the plate
+    // When the flip finishes: gas off, cooking done
     pancake.addEventListener("animationend", function (event) {
       if (event.animationName !== "flip") return;
       cookKnob.classList.remove("on");
       flames.classList.add("hidden");
-      fly(currentDish.emoji, pan, kitchenStation, 40, function () {
-        pancake.className = "pancake";
-        stepDone();
-      });
+      pancake.className = "pancake";
+      stepDone(pan);
     });
+
+    // ----- BOIL: the food goes into the pot and bubbles away -----
+
+    function startBoiling() {
+      stage = "busy";
+      flamesBack.classList.remove("hidden");
+      playSound("click");
+
+      // Whatever is in the bowl flies into the pot
+      fly(currentDish.emoji, kitchenStation, pot, 30, function () {
+        setBowlItems("");
+        setBowlContents("transparent");
+        pot.classList.add("boiling");
+        playSound("pour");
+        showMessage("Bubble bubble... boiling! ♨️", "good");
+
+        setTimeout(function () {
+          pot.classList.remove("boiling");
+          flamesBack.classList.add("hidden");
+          playSound("ding");
+          showMessage("Boiled to perfection! 👍", "good");
+          stepDone(pot);
+        }, 2600);
+      });
+    }
+
+    // ----- BAKE: into the oven until it's done -----
+
+    function startBaking() {
+      stage = "busy";
+      const ovenTag = ovenGlass.querySelector(".appliance-tag");
+
+      // Whatever is in the bowl flies into the oven
+      fly(currentDish.emoji, kitchenStation, ovenGlass, 30, function () {
+        setBowlItems("");
+        setBowlContents("transparent");
+        ovenGlass.classList.add("baking");
+        ovenTag.textContent = currentDish.emoji;   // you can see it through the glass
+
+        // Count down: 3... 2... 1...
+        let secondsLeft = 3;
+        showMessage("Baking... " + secondsLeft + " 🔥", "good");
+        const timer = setInterval(function () {
+          secondsLeft--;
+          if (secondsLeft > 0) {
+            showMessage("Baking... " + secondsLeft + " 🔥", "good");
+            playSound("click");
+          } else {
+            clearInterval(timer);
+            ovenGlass.classList.remove("baking");
+            ovenTag.textContent = "Bake";
+            playSound("ding");
+            showMessage("Ding! Golden and crispy! 👍", "good");
+            stepDone(ovenGlass);
+          }
+        }, 1000);
+      });
+    }
 
     // ============================================================
     // STAGE 3: SERVE THE DISH AND GET PAID
     // ============================================================
 
-    function serveDish() {
+    // "source" is where the finished food is coming from (pan, pot, oven or bowl)
+    function serveDish(source) {
       stage = "served";
-      kitchenStation.querySelector(".bowl").classList.add("hidden");
-      plateFood.textContent = currentDish.emoji;
-      plate.classList.remove("hidden");
 
+      // The finished dish flies onto a plate on the counter
+      fly(currentDish.emoji, source, kitchenStation, 40, function () {
+        kitchenStation.querySelector(".bowl").classList.add("hidden");
+        plateFood.textContent = currentDish.emoji;
+        plate.classList.remove("hidden");
+        getPaid();
+      });
+    }
+
+    function getPaid() {
       customerFace.textContent = "😄";
       customerFace.classList.add("bounce");
-      bubble.textContent = "Delicious! Thank you! 💖";
+      setBubble("Delicious! Thank you! 💖");
       showMessage("+" + coinsPerDish + " coins! 🪙", "good");
       playSound("ding");
 
@@ -2209,6 +2449,13 @@
     function newCustomer() {
       stepsDone = 0;
       currentFace = randomFrom(customerFaces);
+
+      // Pick a dish (a different one from last time, to keep it fresh)
+      let nextDish = randomFrom(dishes);
+      while (nextDish === currentDish) {
+        nextDish = randomFrom(dishes);
+      }
+      currentDish = nextDish;
 
       buildPantry();
       buildTools();
