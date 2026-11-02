@@ -35,6 +35,14 @@
       --blue: #6aaee8;
       --batter: #f6e3b4;
       --sludge: #6f7d3c;
+
+      /* Things you can change in the shop (these are the starting looks) */
+      --wall-pattern: none;    /* wallpaper pattern on top of the wall colour */
+      --bowl: #f4a582;         /* mixing bowl outside */
+      --bowl-inside: #e08e6d;
+      --pan-light: #5c5c5c;    /* frying pan */
+      --pan-dark: #232323;
+      --pan-handle: #e9735b;
     }
 
     * {
@@ -206,7 +214,9 @@
       flex: 1;
       position: relative;
       min-height: 170px;
-      background: var(--cream);
+      background-color: var(--cream);
+      background-image: var(--wall-pattern);
+      background-size: var(--wall-size, auto);
     }
 
     .backsplash {
@@ -846,7 +856,7 @@
       /* Peach bowl with a white band, like a pretty ceramic bowl */
       background:
         linear-gradient(90deg, rgba(255, 255, 255, 0) 15%, rgba(255, 255, 255, 0.55) 30%, rgba(255, 255, 255, 0) 45%),
-        linear-gradient(var(--peach) 0 38%, #fff6ee 38% 52%, var(--peach) 52%);
+        linear-gradient(var(--bowl) 0 38%, #fff6ee 38% 52%, var(--bowl) 52%);
     }
 
     .bowl-rim {
@@ -856,7 +866,7 @@
       height: 22px;
       border: 2.5px solid var(--ink);
       border-radius: 50%;
-      background: #e08e6d;   /* shadowy inside */
+      background: var(--bowl-inside);   /* shadowy inside */
       z-index: 1;
     }
 
@@ -957,7 +967,7 @@
       height: 40px;
       border: 2.5px solid #1d1d1d;
       border-radius: 50%;
-      background: radial-gradient(ellipse at 50% 40%, #5c5c5c, #232323 70%);
+      background: radial-gradient(ellipse at 50% 40%, var(--pan-light), var(--pan-dark) 70%);
       perspective: 300px;     /* makes the flip look 3D */
       z-index: 3;
       touch-action: manipulation;
@@ -971,7 +981,7 @@
       top: 22px;
       width: 30px;
       height: 10px;
-      background: var(--coral);
+      background: var(--pan-handle);
       border: 2.5px solid var(--ink);
       border-radius: 6px;
       transform: rotate(18deg);
@@ -1395,6 +1405,178 @@
       line-height: 1;
     }
 
+    /* Small square buttons either side of the big button (shop, music) */
+    .square-button {
+      flex: 0 0 54px;
+      font-size: 24px;
+      background: #fff6e8;
+    }
+
+    /* Music button looks faded when the music is off */
+    .square-button.off {
+      opacity: 0.45;
+    }
+
+    /* ============================================================
+       THE SHOP: spend coins on new things for your kitchen
+       ============================================================ */
+    .shop-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      background: rgba(75, 56, 50, 0.45);
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+    }
+
+    .shop {
+      width: 100%;
+      max-width: 480px;
+      max-height: 85dvh;
+      display: flex;
+      flex-direction: column;
+      background: var(--cream);
+      border: 3px solid var(--ink);
+      border-bottom: none;
+      border-radius: 24px 24px 0 0;
+      padding: 14px 14px calc(env(safe-area-inset-bottom) + 14px);
+      animation: slide-up 0.3s ease-out;
+    }
+
+    @keyframes slide-up {
+      from { transform: translateY(100%); }
+    }
+
+    .shop-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .shop-header h2 {
+      margin: 0;
+      font-size: 22px;
+    }
+
+    .shop-close {
+      width: 40px;
+      height: 40px;
+      border: 2.5px solid var(--ink);
+      border-radius: 50%;
+      background: white;
+      font-size: 18px;
+      font-family: inherit;
+      color: var(--text);
+    }
+
+    /* Category buttons: Wallpaper, Tiles, Cupboards, Bowl, Pan */
+    .shop-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin: 12px 0;
+    }
+
+    .shop-tab {
+      flex: 0 0 auto;
+      border: 2.5px solid var(--ink);
+      border-radius: 999px;
+      padding: 6px 12px;
+      background: white;
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--text);
+    }
+
+    .shop-tab.chosen {
+      background: var(--peach);
+    }
+
+    .shop-items {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      overflow-y: auto;
+      padding: 2px 2px 6px;
+    }
+
+    .shop-item {
+      border: 2.5px solid var(--ink);
+      border-radius: 14px;
+      padding: 8px;
+      background: white;
+      font-family: inherit;
+      color: var(--text);
+      text-align: center;
+      box-shadow: 0 3px 0 var(--ink);
+    }
+
+    .shop-item.using {
+      border-color: var(--green);
+      box-shadow: 0 3px 0 var(--green);
+      background: #eefaf0;
+    }
+
+    /* A little picture of what you're buying */
+    .swatch {
+      height: 58px;
+      border: 2px solid var(--ink);
+      border-radius: 10px;
+      margin-bottom: 6px;
+    }
+
+    /* Each kind of picture draws itself with that item's colours */
+    .swatch-wallpaper {
+      background-color: var(--cream);
+      background-image: var(--wall-pattern);
+      background-size: var(--wall-size);
+    }
+
+    .swatch-tiles {
+      background-color: var(--tile);
+      background-image:
+        linear-gradient(var(--tile-line) 2px, transparent 2px),
+        linear-gradient(90deg, var(--tile-line) 2px, transparent 2px);
+      background-size: 18px 18px;
+    }
+
+    .swatch-cupboards {
+      background: var(--cabinet-light);
+      box-shadow: inset 0 0 0 7px var(--cabinet);
+    }
+
+    .swatch-bowl {
+      width: 76%;
+      margin-left: auto;
+      margin-right: auto;
+      border-top-width: 5px;
+      border-top-color: var(--bowl-inside);
+      border-radius: 4px 4px 60px 60px / 4px 4px 50px 50px;
+      background: linear-gradient(var(--bowl) 0 38%, #fff6ee 38% 52%, var(--bowl) 52%);
+    }
+
+    .swatch-pan {
+      width: 70%;
+      margin-left: auto;
+      margin-right: auto;
+      border-radius: 50%;
+      border-right: 12px solid var(--pan-handle);
+      background: radial-gradient(ellipse at 50% 40%, var(--pan-light), var(--pan-dark) 70%);
+    }
+
+    .shop-item-name {
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    .shop-item-price {
+      font-size: 13px;
+      margin-top: 2px;
+    }
+
     .hidden {
       display: none !important;
     }
@@ -1540,11 +1722,26 @@
 
     <!-- ===== Bottom bar ===== -->
     <div class="bottom-bar">
+      <button class="big-button square-button" id="shop-button" aria-label="Shop">🛍️</button>
       <button class="big-button turn-button" id="turn-button">🔄 Pantry</button>
       <button class="big-button wash-button hidden" id="wash-button">🧽 Wash the bowl</button>
       <button class="big-button next-button hidden" id="next-button">Next customer ➡️</button>
+      <button class="big-button square-button" id="music-button" aria-label="Music on or off">🎵</button>
     </div>
 
+  </div>
+
+  <!-- ===== The shop (hidden until you tap 🛍️) ===== -->
+  <div class="shop-backdrop hidden" id="shop-backdrop">
+    <div class="shop">
+      <div class="shop-header">
+        <h2>🛍️ Shop</h2>
+        <div class="coins">🪙 <span id="shop-coins">0</span></div>
+        <button class="shop-close" id="shop-close" aria-label="Close the shop">✕</button>
+      </div>
+      <div class="shop-tabs" id="shop-tabs"></div>
+      <div class="shop-items" id="shop-items"></div>
+    </div>
   </div>
 
   <script>
@@ -1804,6 +2001,66 @@
     // How many coins a finished dish earns
     const coinsPerDish = 10;
 
+    // Everything you can buy in the shop, grouped by category.
+    // - id: a short name the game uses to remember what you own
+    // - price: 0 means it's what you start with
+    // - looks: the colour settings (CSS variables) it changes in the kitchen
+    const shopCategories = [
+      {
+        id: "wallpaper", title: "Wallpaper", emoji: "🖼️",
+        items: [
+          { id: "wall-cream",    name: "Cream",          price: 0,  looks: { "--cream": "#fbf1e1", "--wall-pattern": "none", "--wall-size": "auto" } },
+          { id: "wall-mint",     name: "Mint Stripes",   price: 30, looks: { "--cream": "#e8f5ee", "--wall-pattern": "repeating-linear-gradient(90deg, #d0eadb 0 14px, transparent 14px 28px)", "--wall-size": "auto" } },
+          { id: "wall-pink",     name: "Pink Dots",      price: 40, looks: { "--cream": "#fde8ec", "--wall-pattern": "radial-gradient(circle, #f4b9c6 3px, transparent 3.5px)", "--wall-size": "22px 22px" } },
+          { id: "wall-sunny",    name: "Sunny Spots",    price: 50, looks: { "--cream": "#fff4cc", "--wall-pattern": "radial-gradient(circle, #ffdc7a 5px, transparent 5.5px)", "--wall-size": "30px 30px" } },
+          { id: "wall-lavender", name: "Lavender",       price: 60, looks: { "--cream": "#f1eafa", "--wall-pattern": "repeating-linear-gradient(45deg, #e2d5f3 0 10px, transparent 10px 20px)", "--wall-size": "auto" } },
+          { id: "wall-sky",      name: "Sky Blue",       price: 80, looks: { "--cream": "#e3f1fb", "--wall-pattern": "repeating-linear-gradient(0deg, #cfe5f6 0 8px, transparent 8px 24px)", "--wall-size": "auto" } }
+        ]
+      },
+      {
+        id: "tiles", title: "Tiles", emoji: "🔲",
+        items: [
+          { id: "tiles-blue",   name: "Blue Tiles",   price: 0,  looks: { "--tile": "#dfeaf2", "--tile-line": "#c6d7e4" } },
+          { id: "tiles-white",  name: "White Tiles",  price: 20, looks: { "--tile": "#f7f7f4", "--tile-line": "#dedbd3" } },
+          { id: "tiles-mint",   name: "Mint Tiles",   price: 30, looks: { "--tile": "#dcefe3", "--tile-line": "#bfdcc9" } },
+          { id: "tiles-pink",   name: "Pink Tiles",   price: 40, looks: { "--tile": "#f8e1e6", "--tile-line": "#ebc4cc" } },
+          { id: "tiles-butter", name: "Butter Tiles", price: 50, looks: { "--tile": "#fbf0c9", "--tile-line": "#ecdb9f" } }
+        ]
+      },
+      {
+        id: "cupboards", title: "Cupboards", emoji: "🚪",
+        items: [
+          { id: "cup-blue",   name: "Powder Blue", price: 0,  looks: { "--cabinet": "#92b4d4", "--cabinet-light": "#a9c5df" } },
+          { id: "cup-sage",   name: "Sage Green",  price: 40, looks: { "--cabinet": "#9fc2a2", "--cabinet-light": "#b6d3b8" } },
+          { id: "cup-rose",   name: "Rose Pink",   price: 50, looks: { "--cabinet": "#e6a4b4", "--cabinet-light": "#f0bdc9" } },
+          { id: "cup-butter", name: "Butter",      price: 60, looks: { "--cabinet": "#f0d27a", "--cabinet-light": "#f6e09f" } },
+          { id: "cup-lilac",  name: "Lilac",       price: 70, looks: { "--cabinet": "#b8a3d9", "--cabinet-light": "#cbbbe6" } },
+          { id: "cup-wood",   name: "Wood",        price: 90, looks: { "--cabinet": "#c48f58", "--cabinet-light": "#e0b07c" } }
+        ]
+      },
+      {
+        id: "bowl", title: "Bowl", emoji: "🥣",
+        items: [
+          { id: "bowl-peach",  name: "Peach Bowl",  price: 0,  looks: { "--bowl": "#f4a582", "--bowl-inside": "#e08e6d" } },
+          { id: "bowl-mint",   name: "Mint Bowl",   price: 20, looks: { "--bowl": "#9fd8c0", "--bowl-inside": "#7fc1a6" } },
+          { id: "bowl-sky",    name: "Sky Bowl",    price: 30, looks: { "--bowl": "#9cc7ef", "--bowl-inside": "#7eaedb" } },
+          { id: "bowl-lemon",  name: "Lemon Bowl",  price: 30, looks: { "--bowl": "#f7dc6f", "--bowl-inside": "#e3c450" } },
+          { id: "bowl-lilac",  name: "Lilac Bowl",  price: 40, looks: { "--bowl": "#c5aee6", "--bowl-inside": "#ab92d1" } },
+          { id: "bowl-cherry", name: "Cherry Bowl", price: 50, looks: { "--bowl": "#e8656f", "--bowl-inside": "#cc4c57" } }
+        ]
+      },
+      {
+        id: "pan", title: "Pan", emoji: "🍳",
+        items: [
+          { id: "pan-black",  name: "Classic Pan", price: 0,  looks: { "--pan-light": "#5c5c5c", "--pan-dark": "#232323", "--pan-handle": "#e9735b" } },
+          { id: "pan-copper", name: "Copper Pan",  price: 40, looks: { "--pan-light": "#e8ad7f", "--pan-dark": "#a35a2a", "--pan-handle": "#6b3b1e" } },
+          { id: "pan-red",    name: "Red Pan",     price: 50, looks: { "--pan-light": "#ee7b84", "--pan-dark": "#9e2a33", "--pan-handle": "#4b3832" } },
+          { id: "pan-mint",   name: "Mint Pan",    price: 50, looks: { "--pan-light": "#b5e3cf", "--pan-dark": "#4f9c7f", "--pan-handle": "#f4f1ea" } },
+          { id: "pan-gold",   name: "Golden Pan",  price: 100, looks: { "--pan-light": "#fbe38a", "--pan-dark": "#b8891e", "--pan-handle": "#4b3832" } }
+        ]
+      }
+    ];
+
     // How much finger-swirling counts as "fully mixed" (in pixels moved)
     const stirTarget = 1200;
 
@@ -1813,6 +2070,10 @@
     // ============================================================
 
     let coins = 0;
+    let owned = [];              // ids of the shop things you've bought
+    let using = {};              // which thing you're using in each shop category
+    let musicOn = true;          // is the background music switched on?
+    let shopCategory = "wallpaper";  // which shop category is open
     let addedIngredients = [];   // ingredients put in the bowl so far
     let stepsDone = 0;           // how many cooking steps finished so far
     let currentDish = null;      // the dish being made (picked when a customer arrives)
@@ -1839,6 +2100,12 @@
 
     const coinsText = document.getElementById("coins");
     const coinsBox = document.getElementById("coins-box");
+    const shopButton = document.getElementById("shop-button");
+    const musicButton = document.getElementById("music-button");
+    const shopBackdrop = document.getElementById("shop-backdrop");
+    const shopCoins = document.getElementById("shop-coins");
+    const shopTabs = document.getElementById("shop-tabs");
+    const shopItems = document.getElementById("shop-items");
     const recipeTitle = document.getElementById("recipe-title");
     const ingredientSlots = document.getElementById("ingredient-slots");
     const stepSlots = document.getElementById("step-slots");
@@ -2019,6 +2286,296 @@
         // If sound doesn't work, the game carries on silently
       }
     }
+
+    // ============================================================
+    // BACKGROUND MUSIC
+    // "Minuet in G" (from Bach's notebook for Anna Magdalena, 1725),
+    // played note by note by the browser, like a little music box.
+    // ============================================================
+
+    // Each note: [name, how many beats]. Every bar adds up to 3 beats.
+    const minuetTune = [
+      // Part A
+      ["D5",1],["G4",.5],["A4",.5],["B4",.5],["C5",.5],  ["D5",1],["G4",1],["G4",1],
+      ["E5",1],["C5",.5],["D5",.5],["E5",.5],["F#5",.5], ["G5",1],["G4",1],["G4",1],
+      ["C5",1],["D5",.5],["C5",.5],["B4",.5],["A4",.5],  ["B4",1],["C5",.5],["B4",.5],["A4",.5],["G4",.5],
+      ["F#4",1],["G4",.5],["A4",.5],["B4",.5],["G4",.5], ["A4",3],
+      ["D5",1],["G4",.5],["A4",.5],["B4",.5],["C5",.5],  ["D5",1],["G4",1],["G4",1],
+      ["E5",1],["C5",.5],["D5",.5],["E5",.5],["F#5",.5], ["G5",1],["G4",1],["G4",1],
+      ["C5",1],["D5",.5],["C5",.5],["B4",.5],["A4",.5],  ["B4",1],["C5",.5],["B4",.5],["A4",.5],["G4",.5],
+      ["A4",1],["B4",.5],["A4",.5],["G4",.5],["F#4",.5], ["G4",3],
+      // Part B
+      ["B5",1],["G5",.5],["A5",.5],["B5",.5],["G5",.5],  ["A5",1],["D5",.5],["E5",.5],["F#5",.5],["D5",.5],
+      ["G5",1],["E5",.5],["F#5",.5],["G5",.5],["D5",.5], ["C#5",1],["B4",.5],["C#5",.5],["A4",1],
+      ["A4",.5],["B4",.5],["C#5",.5],["D5",.5],["E5",.5],["F#5",.5], ["G5",1],["F#5",1],["E5",1],
+      ["F#5",1],["A4",1],["C#5",1], ["D5",3],
+      ["D5",1],["G4",.5],["F#4",.5],["G4",1], ["E5",1],["G4",.5],["F#4",.5],["G4",1],
+      ["D5",1],["C5",1],["B4",1], ["A4",.5],["G4",.5],["F#4",.5],["G4",.5],["A4",1],
+      ["D4",.5],["E4",.5],["F#4",.5],["G4",.5],["A4",.5],["B4",.5], ["C5",1],["B4",1],["A4",1],
+      ["B4",.5],["D5",.5],["G4",1],["F#4",1], ["G4",3]
+    ];
+
+    // One soft low note per bar, to go under the tune
+    const minuetBass = [
+      "G3","B3","C4","B3","A3","G3","D3","D3", "G3","B3","C4","B3","A3","G3","D3","G3",
+      "G3","F#3","E3","A3","A3","A3","A3","D3", "B3","C4","B3","D3","G3","C4","D3","G3"
+    ];
+
+    const secondsPerBeat = 0.45;
+    let musicVolume = null;     // the volume knob for the music
+    let musicTimer = null;      // checks regularly which notes to play next
+    let musicNotes = [];        // every note with its start time, worked out once
+    let nextNote = 0;           // which note is next
+    let tuneStart = 0;          // when the current time through the tune started
+
+    // Turn a note name like "F#5" into a pitch the browser can play
+    function noteToPitch(name) {
+      const steps = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
+      let number = steps[name[0]];
+      if (name[1] === "#") number++;
+      const octave = parseInt(name[name.length - 1]);
+      const midi = (octave + 1) * 12 + number;
+      return 440 * Math.pow(2, (midi - 69) / 12);
+    }
+
+    // Put the tune and the bass into one list, in time order
+    function prepareMusic() {
+      let beat = 0;
+      minuetTune.forEach(function (note) {
+        musicNotes.push({ beat: beat, pitch: noteToPitch(note[0]), beats: note[1], bass: false });
+        beat += note[1];
+      });
+      minuetBass.forEach(function (name, bar) {
+        musicNotes.push({ beat: bar * 3, pitch: noteToPitch(name) / 2, beats: 3, bass: true });
+      });
+      musicNotes.sort(function (a, b) { return a.beat - b.beat; });
+    }
+
+    // Play one note: a quick "ping" that fades away, like a music box
+    function playNote(note, startTime) {
+      const tone = audio.createOscillator();
+      const volume = audio.createGain();
+      const length = Math.min(note.beats * secondsPerBeat, 1.2);
+      tone.type = note.bass ? "sine" : "triangle";
+      tone.frequency.value = note.pitch;
+      volume.gain.setValueAtTime(0.0001, startTime);
+      volume.gain.exponentialRampToValueAtTime(note.bass ? 0.35 : 0.5, startTime + 0.02);
+      volume.gain.exponentialRampToValueAtTime(0.0001, startTime + length);
+      tone.connect(volume);
+      volume.connect(musicVolume);
+      tone.start(startTime);
+      tone.stop(startTime + length);
+    }
+
+    function startMusic() {
+      if (musicTimer || !musicOn) return;
+      try {
+        if (!audio) {
+          audio = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        audio.resume();
+        if (musicNotes.length === 0) prepareMusic();
+        musicVolume = audio.createGain();
+        musicVolume.gain.value = 0.12;    // quiet, so the sound effects still stand out
+        musicVolume.connect(audio.destination);
+        nextNote = 0;
+        tuneStart = audio.currentTime + 0.1;
+
+        // Every 0.1 seconds, line up the notes due in the next moment
+        musicTimer = setInterval(function () {
+          while (tuneStart + musicNotes[nextNote].beat * secondsPerBeat < audio.currentTime + 0.3) {
+            playNote(musicNotes[nextNote], tuneStart + musicNotes[nextNote].beat * secondsPerBeat);
+            nextNote++;
+            if (nextNote === musicNotes.length) {
+              // End of the tune: start again from the top (32 bars of 3 beats)
+              nextNote = 0;
+              tuneStart += 32 * 3 * secondsPerBeat;
+            }
+          }
+        }, 100);
+      } catch (error) {
+        // No music if the browser can't do it
+      }
+    }
+
+    function stopMusic() {
+      clearInterval(musicTimer);
+      musicTimer = null;
+      if (musicVolume) {
+        musicVolume.disconnect();
+        musicVolume = null;
+      }
+    }
+
+    musicButton.addEventListener("click", function () {
+      musicOn = !musicOn;
+      if (musicOn) startMusic(); else stopMusic();
+      musicButton.classList.toggle("off", !musicOn);
+      saveGame();
+    });
+
+    // Phones only allow sound after the first tap, so the music starts then
+    document.addEventListener("pointerdown", startMusic, { once: true });
+
+    // Pause the music when the game is in the background
+    document.addEventListener("visibilitychange", function () {
+      if (!audio) return;
+      if (document.hidden) audio.suspend(); else audio.resume();
+    });
+
+    // ============================================================
+    // SAVING
+    // Your coins and the things you've bought are remembered on
+    // this phone, so they're still there next time you play.
+    // ============================================================
+
+    function saveGame() {
+      try {
+        localStorage.setItem("cookingGame", JSON.stringify({
+          coins: coins, owned: owned, using: using, musicOn: musicOn
+        }));
+      } catch (error) {
+        // If the phone won't let us save, the game still works
+      }
+    }
+
+    function loadGame() {
+      try {
+        const saved = JSON.parse(localStorage.getItem("cookingGame"));
+        if (saved) {
+          coins = saved.coins || 0;
+          owned = saved.owned || [];
+          using = saved.using || {};
+          musicOn = saved.musicOn !== false;
+        }
+      } catch (error) {
+        // Nothing saved yet (or it couldn't be read): start fresh
+      }
+      coinsText.textContent = coins;
+      musicButton.classList.toggle("off", !musicOn);
+      applyLooks();
+    }
+
+    // ============================================================
+    // THE SHOP
+    // ============================================================
+
+    // Find a shop thing by its id
+    function findShopItem(id) {
+      for (const category of shopCategories) {
+        const item = category.items.find(function (thing) { return thing.id === id; });
+        if (item) return item;
+      }
+      return null;
+    }
+
+    // The thing you're using in a category (or the free one you start with)
+    function usingIn(category) {
+      return findShopItem(using[category.id]) || category.items[0];
+    }
+
+    // Paint the kitchen with everything you're using
+    function applyLooks() {
+      shopCategories.forEach(function (category) {
+        const looks = usingIn(category).looks;
+        for (const name in looks) {
+          document.documentElement.style.setProperty(name, looks[name]);
+        }
+      });
+    }
+
+    function openShop() {
+      playSound("click");
+      renderShop();
+      shopBackdrop.classList.remove("hidden");
+    }
+
+    function closeShop() {
+      shopBackdrop.classList.add("hidden");
+    }
+
+    // Draw the shop: category buttons along the top, things to buy below
+    function renderShop() {
+      shopCoins.textContent = coins;
+
+      shopTabs.innerHTML = "";
+      shopCategories.forEach(function (category) {
+        const tab = document.createElement("button");
+        tab.className = "shop-tab" + (category.id === shopCategory ? " chosen" : "");
+        tab.textContent = category.emoji + " " + category.title;
+        tab.addEventListener("click", function () {
+          shopCategory = category.id;
+          playSound("click");
+          renderShop();
+        });
+        shopTabs.appendChild(tab);
+      });
+
+      const category = shopCategories.find(function (c) { return c.id === shopCategory; });
+      shopItems.innerHTML = "";
+      category.items.forEach(function (item) {
+        const isUsing = usingIn(category) === item;
+        const isOwned = item.price === 0 || owned.includes(item.id);
+
+        const card = document.createElement("button");
+        card.className = "shop-item" + (isUsing ? " using" : "");
+
+        // The little picture uses the item's own colours
+        const swatch = document.createElement("div");
+        swatch.className = "swatch swatch-" + category.id;
+        for (const name in item.looks) {
+          swatch.style.setProperty(name, item.looks[name]);
+        }
+
+        let priceText = "🪙 " + item.price;
+        if (isUsing) priceText = "✅ Using";
+        else if (isOwned) priceText = "Tap to use";
+
+        card.innerHTML =
+          '<div class="shop-item-name">' + item.name + "</div>" +
+          '<div class="shop-item-price">' + priceText + "</div>";
+        card.prepend(swatch);
+        card.addEventListener("click", function () {
+          buyOrUse(category, item, card);
+        });
+        shopItems.appendChild(card);
+      });
+    }
+
+    // Tap a thing in the shop: use it if you own it, otherwise try to buy it
+    function buyOrUse(category, item, card) {
+      const isOwned = item.price === 0 || owned.includes(item.id);
+
+      if (!isOwned) {
+        if (coins < item.price) {
+          // Not enough coins
+          card.querySelector(".shop-item-price").textContent =
+            "Need " + (item.price - coins) + " more 🪙";
+          playAnimation(card, "shake");
+          playSound("blorp");
+          return;
+        }
+        coins -= item.price;
+        coinsText.textContent = coins;
+        owned.push(item.id);
+        playSound("ding");
+      } else {
+        playSound("plop");
+      }
+
+      using[category.id] = item.id;
+      applyLooks();
+      saveGame();
+      renderShop();
+    }
+
+    shopButton.addEventListener("click", openShop);
+    document.getElementById("shop-close").addEventListener("click", closeShop);
+
+    // Tapping the dark area around the shop closes it too
+    shopBackdrop.addEventListener("click", function (event) {
+      if (event.target === shopBackdrop) closeShop();
+    });
 
     // ============================================================
     // THE BOWL
@@ -2636,6 +3193,7 @@
             if (i === 2) {
               coins += coinsPerDish;
               coinsText.textContent = coins;
+              saveGame();
             }
           });
         }, i * 200);
@@ -2700,6 +3258,7 @@
     allBowls().forEach(buildBowl);
     layoutKitchen();
     window.addEventListener("resize", layoutKitchen);
+    loadGame();
     newCustomer();
   </script>
 </body>

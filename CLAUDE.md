@@ -18,5 +18,7 @@ I'm new to coding and learning as we go. Keep code simple and well commented. Af
 - Published with GitHub Pages at https://alexchambers6.github.io/cooking-game/ (repo alexchambers6/cooking-game). Changes go live after they're pushed.
 - Two views: the kitchen in front of you, the pantry behind you (turn around with a button or a swipe).
 - A wrong ingredient turns the bowl into sludge.
+- A shop (🛍️ button) where coins buy new wallpaper, tiles, cupboards, bowls and pans. Coins and purchases are saved on the phone.
+- Background music: Bach's "Minuet in G", played by the browser (🎵 button turns it on and off).
 - Designed for a phone screen held upright; big buttons easy to tap.
 - Cosy, illustrated look (cream walls, powder-blue cupboards, wood, soft brown outlines). Emoji are fine for ingredients and customers.
