@@ -13,7 +13,9 @@ I'm new to coding and learning as we go. Keep code simple and well commented. Af
 - Correct: happy customer, player earns coins. Wrong: friendly message, try again.
 
 ## Current scope
-- Five dishes: pancakes, pasta with tomato sauce, salad, pie and tea. Pie comes in five flavours (apple, orange, banana, pear, grape) using fruit from the basket in the pantry. Each has its own ingredients and steps (Mix, Chop, Cook, Boil, Bake).
+- 24 dishes, from pancakes, pasta, pizza and burgers to sushi, cake, smoothies and lemonade. Pie comes in five flavours (apple, orange, banana, pear, grape) using fruit from the basket in the pantry. Each has its own ingredients and steps (Mix, Chop, Cook, Boil, Bake).
+- The pantry has more jars than fit on the shelves; each round shows the 20 jars: the ones you need plus random distractors.
+- Published with GitHub Pages at https://alexchambers6.github.io/cooking-game/ (repo alexchambers6/cooking-game). Changes go live after they're pushed.
 - Two views: the kitchen in front of you, the pantry behind you (turn around with a button or a swipe).
 - A wrong ingredient turns the bowl into sludge.
 - Designed for a phone screen held upright; big buttons easy to tap.
